@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/CMMN/20151109/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/cmmn"
+             xmlns:cmmndi="http://www.omg.org/spec/CMMN/20151109/CMMNDI"
+             xmlns:dc="http://www.omg.org/spec/CMMN/20151109/DC"
+             xmlns:di="http://www.omg.org/spec/CMMN/20151109/DI"  targetNamespace="http://www.flowable.org/casedef">
+    <case id="employeeOnboarding" name="Simple Example">
+        <casePlanModel id="casePlanModel" name="My Case">
+            <planItem id="planItem5" name="Prior to starting"
+                      definitionRef="sid-025D29E8-BA9B-403D-A684-8C5B52185642">
+            </planItem>
+            <planItem id="planItem8" name="After starting"
+                      definitionRef="sid-8459EF32-4F4C-4E9B-A6E9-87FDC2299044">
+                <entryCriterion id="sid-50B5F12D-FE75-4D05-9148-86574EE6C073"
+                                sentryRef="sentry2"></entryCriterion>
+            </planItem>
+            <planItem id="planItem9" name="Reject job"
+                      definitionRef="sid-134E885A-3D58-417E-81E2-66A3E12334F9"></planItem>
+            <sentry id="sentry2">
+                <planItemOnPart id="sentryOnPart4" sourceRef="planItem5">
+                    <standardEvent>complete</standardEvent>
+                </planItemOnPart>
+            </sentry>
+            <sentry id="sentry3">
+                <planItemOnPart id="sentryOnPart5" sourceRef="planItem9">
+                    <standardEvent>complete</standardEvent>
+                </planItemOnPart>
+            </sentry>
+            <stage id="sid-025D29E8-BA9B-403D-A684-8C5B52185642" name="Prior to starting">
+                <planItem id="planItem1" name="Create email address"
+                          definitionRef="sid-EA434DDD-E1BE-4AC1-8520-B19ACE8782D2"></planItem>
+                <planItem id="planItem2" name="Allocate office"
+                          definitionRef="sid-505BA223-131A-4EF0-ABAD-485AEB0F2C96"></planItem>
+                <planItem id="planItem3" name="Send joining letter to candidate"
+                          definitionRef="sid-D28DBAD5-0F5F-45F4-8553-3381199AC45F">
+                    <entryCriterion id="sid-4D88C79D-8E31-4246-9541-A4F6A5720AC8"
+                                    sentryRef="sentry1"></entryCriterion>
+                </planItem>
+                <planItem id="planItem4" name="Agree start date"
+                          definitionRef="sid-97A72C46-C0AD-477F-86DD-85EF643BB97D"></planItem>
+                <sentry id="sentry1">
+                    <planItemOnPart id="sentryOnPart1" sourceRef="planItem1">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                    <planItemOnPart id="sentryOnPart2" sourceRef="planItem2">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                    <planItemOnPart id="sentryOnPart3" sourceRef="planItem4">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                </sentry>
+                <humanTask id="sid-EA434DDD-E1BE-4AC1-8520-B19ACE8782D2"
+                           name="Create email address"
+                           flowable:candidateGroups="hr"></humanTask>
+                <humanTask id="sid-505BA223-131A-4EF0-ABAD-485AEB0F2C96"
+                           name="Allocate office"
+                           flowable:candidateGroups="hr"></humanTask>
+                <humanTask id="sid-D28DBAD5-0F5F-45F4-8553-3381199AC45F"
+                           name="Send joining letter to candidate"
+                           flowable:candidateGroups="hr"></humanTask>
+                <humanTask id="sid-97A72C46-C0AD-477F-86DD-85EF643BB97D"
+                           name="Agree start date"
+                           flowable:candidateGroups="hr"></humanTask>
+            </stage>
+            <stage id="sid-8459EF32-4F4C-4E9B-A6E9-87FDC2299044"
+                   name="After starting">
+                <planItem id="planItem6" name="New starter training"
+                          definitionRef="sid-DF7B9582-11A6-40B4-B7E5-EC7AC6029387"></planItem>
+                <planItem id="planItem7" name="Fill in paperwork"
+                          definitionRef="sid-7BF2B421-7FA0-479D-A8BD-C22EBD09F599"></planItem>
+                <humanTask id="sid-DF7B9582-11A6-40B4-B7E5-EC7AC6029387"
+                           name="New starter training"
+                           flowable:assignee="${potentialEmployee}"></humanTask>
+                <humanTask id="sid-7BF2B421-7FA0-479D-A8BD-C22EBD09F599"
+                           name="Fill in paperwork"
+                           flowable:assignee="${potentialEmployee}"></humanTask>
+            </stage>
+            <humanTask id="sid-134E885A-3D58-417E-81E2-66A3E12334F9" name="Reject job"
+                       flowable:assignee="${potentialEmployee}"></humanTask>
+            <exitCriterion id="sid-18277F30-E146-4B3E-B3C9-3F1E187EC7A8"
+                           sentryRef="sentry3"></exitCriterion>
+        </casePlanModel>
+    </case>
+</definitions>

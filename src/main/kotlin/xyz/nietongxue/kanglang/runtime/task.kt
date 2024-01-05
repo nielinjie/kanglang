@@ -1,4 +1,4 @@
-package xyz.nietongxue.kanglang
+package xyz.nietongxue.kanglang.runtime
 
 interface Task{
     fun variables():Map<String,Any>

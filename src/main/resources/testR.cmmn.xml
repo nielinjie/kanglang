@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/CMMN/20151109/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:flowable="http://flowable.org/cmmn" xmlns:cmmndi="http://www.omg.org/spec/CMMN/20151109/CMMNDI"
-             xmlns:dc="http://www.omg.org/spec/CMMN/20151109/DC" xmlns:di="http://www.omg.org/spec/CMMN/20151109/DI"
-             targetNamespace="http://flowable.org/cmmn"
->
+<definitions xmlns="http://www.omg.org/spec/CMMN/20151109/MODEL"
+             xmlns:flowable="http://flowable.org/cmmn"
+             targetNamespace="http://www.flowable.org/casedef">
     <case id="testR" name="testR">
         <casePlanModel id="onecaseplanmodel1" name="Case plan model">
             <planItem id="planItemcmmnTask_1" name="spite question" definitionRef="cmmnTask_1"></planItem>
@@ -25,5 +23,4 @@
             </humanTask>
         </casePlanModel>
     </case>
-
 </definitions>

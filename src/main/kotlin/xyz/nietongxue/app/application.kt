@@ -2,17 +2,11 @@ package xyz.nietongxue.app;
 
 import org.flowable.cmmn.api.CmmnTaskService
 import org.flowable.task.api.Task
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 import xyz.nietongxue.kanglang.actor.Actor
-import xyz.nietongxue.kanglang.actor.GetTask
-import xyz.nietongxue.kanglang.define.Define
-import xyz.nietongxue.kanglang.runtime.CmmnTask
+import xyz.nietongxue.kanglang.define.DefineByResource
 
 
 fun main() {
@@ -24,8 +18,8 @@ fun main() {
 class Application() {
 
     @Bean(name = ["define"])
-    fun define(): Define {
-        return Define("employeeOnboarding", "my-case.cmmn.xml")
+    fun define(): DefineByResource {
+        return DefineByResource("employeeOnboarding", "my-case.cmmn.xml")
     }
 
     @Bean(name = ["initVariables"])

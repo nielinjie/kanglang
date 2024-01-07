@@ -10,7 +10,6 @@ import org.flowable.cmmn.api.event.FlowableCaseStartedEvent
 import org.flowable.cmmn.engine.CmmnEngine
 import org.flowable.common.engine.api.delegate.event.FlowableEvent
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener
-import org.flowable.engine.RuntimeService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -19,7 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import xyz.nietongxue.kanglang.actor.*
-import xyz.nietongxue.kanglang.define.Define
+import xyz.nietongxue.kanglang.define.DefineByResource
 
 @EnableScheduling
 @Configuration
@@ -27,7 +26,7 @@ class Engine(
     @Autowired
     val cmmnEngine: CmmnEngine,
     @Resource(name = "define")
-    val define: Define,
+    val define: DefineByResource,
     @Resource(name = "initVariables")
     val initVariables: Map<String, Any>
 ) {
@@ -62,7 +61,7 @@ class Engine(
         log.info("engine: {}", cmmnEngine)
         val cmmnRepositoryService: CmmnRepositoryService = cmmnEngine.cmmnRepositoryService
         val cmmnDeployment = cmmnRepositoryService.createDeployment()
-            .addClasspathResource(define.resource)
+            .addClasspathResource(define.resourcePath)
             .deploy()
         val caseDefinitions = cmmnRepositoryService.createCaseDefinitionQuery().list()
         this.runtimeService = cmmnEngine.cmmnRuntimeService!!
@@ -73,7 +72,6 @@ class Engine(
                     when(event){
                         is FlowableCaseStartedEvent -> println("case started: ${event.scopeId}")
                         is FlowableCaseEndedEvent -> println("case ended: ${event.scopeId}")
-                        is FlowableTa
                     }
                 }
 

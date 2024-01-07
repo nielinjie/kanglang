@@ -1,17 +1,20 @@
 package xyz.nietongxue.kanglang.define
 
-data class Define(
+data class DefineByResource(
     val id: String,
-    val resource: String
+    val resourcePath: String
 )
-
-data class CaseDefine(
+data class DefineByString(
     val id: String,
+    val content: String
+)
+data class CaseDefine(
+    val name:String,
     val stages: List<StageDefine>
 ) {
 }
 
-data class StageDefine(val id: String,val tasks: List<TaskDefine>) {
+data class StageDefine(val name:String,val tasks: List<TaskDefine>) {
 }
 
-data class TaskDefine(val id: String)
+data class TaskDefine(val name: String)

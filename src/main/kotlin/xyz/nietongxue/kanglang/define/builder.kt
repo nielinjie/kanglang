@@ -43,6 +43,10 @@ class CaseBuilder {
 class StageBuilder {
     private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
+    var entry: SentryDefine? = null
+    fun entry(name: String, planItemOn: String, event: SentryEvent) {
+        this.entry = SentryDefine(name, planItemOn, event)
+    }
     fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
         val builder = TaskBuilder().also {
             it.name = name
@@ -60,7 +64,11 @@ class StageBuilder {
 
 class TaskBuilder {
     var name: String? = null
+    var entry: SentryDefine? = null
+    fun entry(name: String, planItemOn: String, event: SentryEvent) {
+        this.entry = SentryDefine(name, planItemOn, event)
+    }
     fun build(): TaskDefine {
-        return TaskDefine(name ?: "task1")
+        return TaskDefine(name ?: "task1", entry)
     }
 }

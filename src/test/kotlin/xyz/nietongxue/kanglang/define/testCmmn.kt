@@ -78,6 +78,19 @@ class CmmnTest : StringSpec({
         val tasks = cmmnEngine.cmmnTaskService.createTaskQuery().active().list()
         tasks shouldHaveSize 2
     }
+    "parse from generated with sentry" {
+        val cmmnEngine = StandaloneInMemCmmnEngineConfiguration().buildCmmnEngine()
+        val cmmnRepositoryService = cmmnEngine.cmmnRepositoryService
+        val cmmnDeployment: CmmnDeployment = cmmnRepositoryService.createDeployment()
+            .addClasspathResource("testGeneratedWithSentry.cmmn.xml")
+            .deploy()
+        val cmmnRuntimeService = cmmnEngine.cmmnRuntimeService
+        val caseInstance = cmmnRuntimeService.createCaseInstanceBuilder()
+            .caseDefinitionKey("model_id_case_1")
+            .start()
+        val tasks = cmmnEngine.cmmnTaskService.createTaskQuery().active().list()
+        tasks shouldHaveSize 1
+    }
     "simple dsl" {
         val define = caseDefine {
             case("case1") {

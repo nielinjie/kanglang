@@ -20,4 +20,20 @@ class XMLTest : StringSpec({
             resourceAsString("/testGenerated.cmmn.xml")
         )
     }
+    "with sentry"{
+        val define = caseDefine {
+            case("case1") {
+                stage("stage1") {
+                    task("task1") {
+                    }
+                    task("task2") {
+                        entry("entry1", "task1", SentryEvent.Complete)
+                    }
+                }
+            }
+        }
+        pretty(toXML(define)) shouldBe pretty(
+            resourceAsString("/testGeneratedWithSentry.cmmn.xml")
+        )
+    }
 })

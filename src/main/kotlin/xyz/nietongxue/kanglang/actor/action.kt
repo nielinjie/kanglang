@@ -16,6 +16,5 @@ fun forTaskName(taskName: String, actionFun: (Task) -> TouchResult): Action {
         override fun touch(task: Task): TouchResult {
             return actionFun(task)
         }
-
     }
 }

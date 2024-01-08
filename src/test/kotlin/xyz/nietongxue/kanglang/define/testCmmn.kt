@@ -8,7 +8,6 @@ import org.flowable.cmmn.engine.impl.cfg.StandaloneInMemCmmnEngineConfiguration
 import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl
 import xyz.nietongxue.kanglang.define.caseDefine
 import xyz.nietongxue.kanglang.define.pretty
-import xyz.nietongxue.kanglang.define.toXML
 
 
 class CmmnTest : StringSpec({
@@ -105,7 +104,7 @@ class CmmnTest : StringSpec({
         val cmmnEngine = StandaloneInMemCmmnEngineConfiguration().buildCmmnEngine()
         val cmmnRepositoryService = cmmnEngine.cmmnRepositoryService
         val cmmnDeployment: CmmnDeployment = cmmnRepositoryService.createDeployment()
-            .addString("testGenerated.cmmn", pretty(toXML(define)))
+            .addString("testGenerated.cmmn", pretty(building(define).toString(false)))
             .deploy()
         val cmmnRuntimeService = cmmnEngine.cmmnRuntimeService
 
@@ -115,4 +114,28 @@ class CmmnTest : StringSpec({
         val tasks = cmmnEngine.cmmnTaskService.createTaskQuery().active().list()
         tasks shouldHaveSize 2
     }
+    "with sentry"{
+        val define = caseDefine {
+            case("case1") {
+                stage("stage1") {
+                    task("task1") {
+                    }
+                    task("task2") {
+                        entry("entry1", "task1", SentryEvent.Complete)
+                    }
+                }
+            }
+        }
+        val cmmnEngine = StandaloneInMemCmmnEngineConfiguration().buildCmmnEngine()
+        val cmmnRepositoryService = cmmnEngine.cmmnRepositoryService
+        val cmmnDeployment: CmmnDeployment = cmmnRepositoryService.createDeployment()
+            .addString("testGeneratedWithSentry.cmmn", building(define).toString(false))
+            .deploy()
+        val cmmnRuntimeService = cmmnEngine.cmmnRuntimeService
+
+        val caseInstance = cmmnRuntimeService.createCaseInstanceBuilder()
+            .caseDefinitionKey("model_id_case_1")
+            .start()
+        val tasks = cmmnEngine.cmmnTaskService.createTaskQuery().active().list()
+        tasks shouldHaveSize 1}
 })

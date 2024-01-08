@@ -16,7 +16,7 @@ class XMLTest : StringSpec({
                 }
             }
         }
-        pretty(toXML(define)) shouldBe pretty(
+        pretty(building(define).toString(false)) shouldBe pretty(
             resourceAsString("/testGenerated.cmmn.xml")
         )
     }
@@ -32,7 +32,7 @@ class XMLTest : StringSpec({
                 }
             }
         }
-        pretty(toXML(define)) shouldBe pretty(
+        pretty(building(define).toString(false)) shouldBe pretty(
             resourceAsString("/testGeneratedWithSentry.cmmn.xml")
         )
     }

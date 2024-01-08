@@ -35,9 +35,10 @@ data class TaskDefine(
 
 }
 
-data class SentryDefine(val name: String, val planItemOn: String, val event: SentryEvent) {
+data class SentryDefine(val name: String, val onEvents:List<OnEvent>) {
 }
 
+data class OnEvent(val planItemOn:String,val event: SentryEvent)
 interface SentryEvent {
     object Complete : SentryEvent
 }

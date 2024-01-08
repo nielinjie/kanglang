@@ -45,7 +45,7 @@ class StageBuilder {
     var name: String? = null
     var entry: SentryDefine? = null
     fun entry(name: String, planItemOn: String, event: SentryEvent) {
-        this.entry = SentryDefine(name, planItemOn, event)
+        this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
     }
     fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
         val builder = TaskBuilder().also {
@@ -66,7 +66,7 @@ class TaskBuilder {
     var name: String? = null
     var entry: SentryDefine? = null
     fun entry(name: String, planItemOn: String, event: SentryEvent) {
-        this.entry = SentryDefine(name, planItemOn, event)
+        this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
     }
     fun build(): TaskDefine {
         return TaskDefine(name ?: "task1", entry)

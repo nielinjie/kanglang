@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <definitions xmlns="http://www.omg.org/spec/CMMN/20151109/MODEL" xmlns:flowable="http://flowable.org/cmmn" targetNamespace="http://www.flowable.org/casedef">
-
     <case id="model_id_case_1" name="case1">
-
         <casePlanModel id="plan_model_id_model_id_case_1">
-
             <planItem definitionRef="model_id_stage_1" id="plan_item_id_model_id_stage_1"/>
-
             <stage id="model_id_stage_1" name="stage1">
-
                 <planItem definitionRef="model_id_task_1" id="plan_item_id_model_id_task_1"/>
-
                 <planItem definitionRef="model_id_task_2" id="plan_item_id_model_id_task_2"/>
-
                 <humanTask id="model_id_task_1" name="task1"/>
-
                 <humanTask id="model_id_task_2" name="task2"/>
-
             </stage>
-
         </casePlanModel>
-
     </case>
-
 </definitions>

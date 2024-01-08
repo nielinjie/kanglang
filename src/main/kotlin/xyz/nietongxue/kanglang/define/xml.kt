@@ -15,10 +15,11 @@ import javax.xml.transform.stream.StreamResult
 
 
 
-
-
 fun entryCriterionId(sentryDefine: SentryDefine): String {
     return "entry_criterion_id_${sentryDefine.name}".lowerUnderscore()
+}
+fun exitCriterionId(sentryDefine: SentryDefine): String {
+    return "exit_criterion_id_${sentryDefine.name}".lowerUnderscore()
 }
 
 
@@ -28,14 +29,14 @@ fun sentryId(name: String): String {
 }
 
 fun planModelId(modelName: String): String {
-    return "planModel_id_${modelId(modelName)}".lowerUnderscore()
+    return "planModel_id_${defineModelId(modelName)}".lowerUnderscore()
 }
 
 fun planItemId(modelName: String): String {
-    return "planItem_id_${modelId(modelName)}".lowerUnderscore()
+    return "planItem_id_${defineModelId(modelName)}".lowerUnderscore()
 }
 
-fun modelId(modelName: String): String {
+fun defineModelId(modelName: String): String {
     return "model_id_$modelName".lowerUnderscore()
 }
 

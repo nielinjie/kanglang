@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import xyz.nietongxue.kanglang.actor.Actor
-import xyz.nietongxue.kanglang.define.DefineByResource
+import xyz.nietongxue.kanglang.define.DefineToDeploy
 
 
 fun main() {
@@ -18,8 +18,8 @@ fun main() {
 class Application() {
 
     @Bean(name = ["define"])
-    fun define(): DefineByResource {
-        return DefineByResource("employeeOnboarding", "my-case.cmmn.xml")
+    fun define(): DefineToDeploy.DefineByResource {
+        return DefineToDeploy.DefineByResource("employeeOnboarding", "my-case.cmmn.xml")
     }
 
     @Bean(name = ["initVariables"])

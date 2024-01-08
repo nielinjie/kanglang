@@ -9,8 +9,8 @@ fun caseDefine(init: CaseDefineBuilder.() -> Unit): CaseDefine {
 
 class CaseDefineBuilder {
     private var caseDefine: CaseDefine? = null
-    fun case(name:String,init: CaseBuilder.() -> Unit) {
-        val builder = CaseBuilder().also{
+    fun case(name: String, init: CaseBuilder.() -> Unit) {
+        val builder = CaseBuilder().also {
             it.name = name
             it.init()
         }
@@ -24,9 +24,10 @@ class CaseDefineBuilder {
 
 class CaseBuilder {
     private val stageDefines: MutableList<StageDefine> = mutableListOf()
+    private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
     fun stage(name: String, init: StageBuilder.() -> Unit): StageDefine {
-        val builder = StageBuilder().also{
+        val builder = StageBuilder().also {
             it.name = name
             it.init()
         }
@@ -35,8 +36,18 @@ class CaseBuilder {
         return stageDefine
     }
 
+    fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
+        val builder = TaskBuilder().also {
+            it.name = name
+            it.init()
+        }
+        val taskDefine = builder.build()
+        taskDefines.add(taskDefine)
+        return taskDefine
+    }
+
     fun build(): CaseDefine {
-        return CaseDefine(this.name!!, stageDefines)
+        return CaseDefine(this.name!!, stageDefines, taskDefines)
     }
 }
 
@@ -47,6 +58,7 @@ class StageBuilder {
     fun entry(name: String, planItemOn: String, event: SentryEvent) {
         this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
     }
+
     fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
         val builder = TaskBuilder().also {
             it.name = name
@@ -68,7 +80,10 @@ class TaskBuilder {
     fun entry(name: String, planItemOn: String, event: SentryEvent) {
         this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
     }
+
     fun build(): TaskDefine {
-        return TaskDefine(name ?: "task1", entry)
+        return TaskDefine(name ?: "task1").also {
+            it.entry = entry
+        }
     }
 }

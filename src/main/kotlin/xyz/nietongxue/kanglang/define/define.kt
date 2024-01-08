@@ -1,44 +1,36 @@
 package xyz.nietongxue.kanglang.define
 
-data class DefineByResource(
-    val id: String,
-    val resourcePath: String
-)
+interface HasCriterion {
+    var entry: SentryDefine?
+    var exit: SentryDefine?
 
-interface EntryCriterion {
-    val entry: SentryDefine?
 }
-
-interface ExitCriterion {
-    val exit: SentryDefine?
-}
-
-
-data class DefineByString(
-    val id: String,
-    val content: String
-)
 
 data class CaseDefine(
     val name: String,
-    val stages: List<StageDefine>
-) {
+    val stages: List<StageDefine>,
+    val tasks: List<TaskDefine>
+) : HasCriterion {
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
 }
 
-data class StageDefine(val name: String, val tasks: List<TaskDefine>) {
+data class StageDefine(val name: String, val tasks: List<TaskDefine>) : HasCriterion {
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
 }
 
 data class TaskDefine(
     val name: String,
-    override val entry: SentryDefine? = null
-) : EntryCriterion {
-
+) : HasCriterion {
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
 }
 
-data class SentryDefine(val name: String, val onEvents:List<OnEvent>) {
+data class SentryDefine(val name: String, val onEvents: List<OnEvent>) {
 }
 
-data class OnEvent(val planItemOn:String,val event: SentryEvent)
+data class OnEvent(val planItemOn: String, val event: SentryEvent)
 interface SentryEvent {
     object Complete : SentryEvent
 }

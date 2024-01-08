@@ -18,7 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import xyz.nietongxue.kanglang.actor.*
-import xyz.nietongxue.kanglang.define.DefineByResource
+import xyz.nietongxue.kanglang.define.DefineToDeploy
 
 @EnableScheduling
 @Configuration
@@ -26,7 +26,7 @@ class Engine(
     @Autowired
     val cmmnEngine: CmmnEngine,
     @Resource(name = "define")
-    val define: DefineByResource,
+    val define: DefineToDeploy.DefineByResource,
     @Resource(name = "initVariables")
     val initVariables: Map<String, Any>
 ) {

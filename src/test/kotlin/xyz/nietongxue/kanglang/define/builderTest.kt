@@ -53,8 +53,9 @@ class DefineBuilderTest : StringSpec({
                     TaskDefine("task1"),
                     TaskDefine(
                         "task2",
-                        SentryDefine("entry1", listOf(OnEvent("task1", Complete)))
-                    )
+                    ).also {
+                        it.entry = SentryDefine("entry1", listOf(OnEvent("task1", Complete)))
+                    }
                 )
             ),
             StageDefine("stage2", listOf())

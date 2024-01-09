@@ -6,8 +6,6 @@ import io.kotest.matchers.shouldBe
 import org.flowable.cmmn.api.repository.CmmnDeployment
 import org.flowable.cmmn.engine.impl.cfg.StandaloneInMemCmmnEngineConfiguration
 import org.flowable.task.service.impl.persistence.entity.TaskEntityImpl
-import xyz.nietongxue.kanglang.define.caseDefine
-import xyz.nietongxue.kanglang.define.pretty
 
 
 class CmmnTest : StringSpec({

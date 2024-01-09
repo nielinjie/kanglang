@@ -1,34 +1,31 @@
-package xyz.nietongxue.app
+package xyz.nietongxue.app.newEmployee
 
 import xyz.nietongxue.kanglang.actor.*
 import xyz.nietongxue.kanglang.runtime.Task
 
-val actors = listOf(object : Actor {
 
-    val reject = forTaskName("Reject job") { task ->
-        TouchResult.NotCompleted(task)
-    }
+val newEmployeeActor = object : Actor {
 
-    val fill = forTaskName("Fill in paperwork") { task ->
+
+    val fill = forTaskName(FILL_IN_PAPERWORK) { task ->
         task.caseVariables()["email"]?.let {
             println("my email is $it")
             TouchResult.Completed(task, Effect.CaseVariable(task, "paper", "myEmail" to it))
         } ?: return@forTaskName TouchResult.Error(task, "can't find email in case")
     }
-    val newTrain = forTaskName("New starter training") { task ->
+    val newTrain = forTaskName(NEW_STARTER_TRAINING) { task ->
         TouchResult.Completed(task)
     }
     override val name: String
         get() = "newEmployee"
 
-    override fun getTask(): GetTask {
-        return GetTask.ByUserName("johnDoe")
+    override fun getTask(): GetTaskStrategy {
+        return GetTaskStrategy.ByUserName("johnDoe")
     }
 
     override fun touch(task: Task): TouchResult {
         println("as new employee, doIt: ${task.name}")
         return when {
-            reject.matchTask(task) -> reject.touch(task)
             fill.matchTask(task) -> fill.touch(task)
             newTrain.matchTask(task) -> newTrain.touch(task)
             else -> error("unknown task: ${task.name}")
@@ -36,29 +33,29 @@ val actors = listOf(object : Actor {
     }
 
     override fun choose(tasks: List<Task>): ChooseResult {
-        return tasks.firstOrNull {
-            !reject.matchTask(it)
-        }?.let { ChooseResult.Chosen(it) } ?: ChooseResult.NotChosen()
+        return tasks.filterNot { it.name == REJECT_JOB }.firstOrNull()?.let { ChooseResult.Chosen(it) }
+            ?: ChooseResult.NotChosen()
     }
 
-}, object : Actor {
-    val create = forTaskName("Create email address") { task ->
+}
+
+val hrActor = object : Actor {
+    val create = forTaskName(CREATE_EMAIL_ADDRESS) { task ->
         TouchResult.Completed(task, Effect.CaseVariable(task, "email", "john@new.com"))
     }
-    val agree = forTaskName("Agree start date") { task ->
+    val agree = forTaskName(AGREE_START_DATE) { task ->
         TouchResult.Completed(task)
     }
-    val allocate = forTaskName("Allocate office") { task ->
+    val allocate = forTaskName(ALLOCATE_OFFICE) { task ->
         TouchResult.Completed(task)
     }
-    val send = forTaskName("Send joining letter to candidate") { task ->
+    val send = forTaskName(SENDING_JOINING_LETTER_TO_CANDIDATE) { task ->
         TouchResult.Completed(task)
     }
-    override val name: String
-        get() = "hr"
+    override val name: String = "hr"
 
-    override fun getTask(): GetTask {
-        return GetTask.ByRoleName("hr")
+    override fun getTask(): GetTaskStrategy {
+        return GetTaskStrategy.ByRoleName("hr")
     }
 
     override fun touch(task: Task): TouchResult {
@@ -72,4 +69,5 @@ val actors = listOf(object : Actor {
             else -> error("unknown task: ${task.name}")
         }
     }
-})
+}
+val actors = listOf(newEmployeeActor, hrActor)

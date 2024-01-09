@@ -22,7 +22,7 @@ class CaseDefineBuilder {
     }
 }
 
-class CaseBuilder {
+class CaseBuilder : CBuilder() {
     private val stageDefines: MutableList<StageDefine> = mutableListOf()
     private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
@@ -36,7 +36,7 @@ class CaseBuilder {
         return stageDefine
     }
 
-    fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
+    fun task(name: String, init: TaskBuilder.() -> Unit = {}): TaskDefine {
         val builder = TaskBuilder().also {
             it.name = name
             it.init()
@@ -47,19 +47,19 @@ class CaseBuilder {
     }
 
     fun build(): CaseDefine {
-        return CaseDefine(this.name!!, stageDefines, taskDefines)
+        return CaseDefine(this.name!!, stageDefines, taskDefines).also {
+            it.entry = this.entry
+            it.exit = this.exit
+        }
     }
 }
 
-class StageBuilder {
+class StageBuilder : CBuilder() {
     private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
-    var entry: SentryDefine? = null
-    fun entry(name: String, planItemOn: String, event: SentryEvent) {
-        this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
-    }
 
-    fun task(name: String, init: TaskBuilder.() -> Unit): TaskDefine {
+
+    fun task(name: String, init: TaskBuilder.() -> Unit = {}): TaskDefine {
         val builder = TaskBuilder().also {
             it.name = name
             it.init()
@@ -70,20 +70,42 @@ class StageBuilder {
     }
 
     fun build(): StageDefine {
-        return StageDefine(this.name!!, taskDefines)
+        return StageDefine(this.name!!, taskDefines).also {
+            it.entry = this.entry
+            it.exit = this.exit
+        }
     }
 }
 
-class TaskBuilder {
-    var name: String? = null
+open class CBuilder {
     var entry: SentryDefine? = null
-    fun entry(name: String, planItemOn: String, event: SentryEvent) {
-        this.entry = SentryDefine(name, listOf(OnEvent(planItemOn, event)))
+    var exit: SentryDefine? = null
+
+    fun entry(name: String, vararg onEvent: OnEvent) {
+        this.entry = SentryDefine(name, onEvent.toList())
     }
 
+    fun exit(name: String, vararg onEvent: OnEvent) {
+        this.exit = SentryDefine(name, onEvent.toList())
+    }
+
+
+
+    fun exit(name: String, planItemOn: String, event: SentryEvent) {
+        this.exit(name, OnEvent(planItemOn, event))
+    }
+    fun entry(name: String, planItemOn: String, event: SentryEvent) {
+        this.entry(name, OnEvent(planItemOn, event))
+    }
+
+}
+
+class TaskBuilder : CBuilder() {
+    var name: String? = null
     fun build(): TaskDefine {
-        return TaskDefine(name ?: "task1").also {
-            it.entry = entry
+        return TaskDefine(name!!).also {
+            it.entry = this.entry
+            it.exit = this.exit
         }
     }
 }

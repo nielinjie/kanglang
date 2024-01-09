@@ -5,11 +5,7 @@ import jakarta.annotation.Resource
 import org.flowable.cmmn.api.CmmnRepositoryService
 import org.flowable.cmmn.api.CmmnRuntimeService
 import org.flowable.cmmn.api.CmmnTaskService
-import org.flowable.cmmn.api.event.FlowableCaseEndedEvent
-import org.flowable.cmmn.api.event.FlowableCaseStartedEvent
 import org.flowable.cmmn.engine.CmmnEngine
-import org.flowable.common.engine.api.delegate.event.FlowableEvent
-import org.flowable.common.engine.api.delegate.event.FlowableEventListener
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -19,16 +15,14 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import xyz.nietongxue.kanglang.actor.*
 import xyz.nietongxue.kanglang.define.DefineToDeploy
+import xyz.nietongxue.kanglang.material.get
 
 @EnableScheduling
 @Configuration
 class Engine(
-    @Autowired
-    val cmmnEngine: CmmnEngine,
-    @Resource(name = "define")
-    val define: DefineToDeploy.DefineByResource,
-    @Resource(name = "initVariables")
-    val initVariables: Map<String, Any>
+    @Autowired val cmmnEngine: CmmnEngine,
+    @Resource(name = "define") val define: DefineToDeploy,
+    @Resource(name = "initVariables") val initVariables: Map<String, Any>
 ) {
 
 
@@ -60,42 +54,59 @@ class Engine(
     fun onInit(): Unit {
         log.info("engine: {}", cmmnEngine)
         val cmmnRepositoryService: CmmnRepositoryService = cmmnEngine.cmmnRepositoryService
-        val cmmnDeployment = cmmnRepositoryService.createDeployment()
-            .addClasspathResource(define.resourcePath)
-            .deploy()
+        val cmmnDeployment = cmmnRepositoryService.createDeployment().also {
+                when (define) {
+                    is DefineToDeploy.DefineByResource -> it.addClasspathResource((define as DefineToDeploy.DefineByResource).resourcePath)
+                    is DefineToDeploy.DefineByString -> {
+                        (define as DefineToDeploy.DefineByString).also { d ->
+                            it.addString(d.id, d.content)
+                        }
+                    }
+
+                }
+            }.deploy()
         val caseDefinitions = cmmnRepositoryService.createCaseDefinitionQuery().list()
         this.runtimeService = cmmnEngine.cmmnRuntimeService!!
+
         this.runtimeService!!.addEventListener(
-            object : FlowableEventListener {
-                override fun onEvent(event: FlowableEvent?) {
-//                    println("event: $event")
-                    when(event){
-                        is FlowableCaseStartedEvent -> println("case started: ${event.scopeId}")
-                        is FlowableCaseEndedEvent -> println("case ended: ${event.scopeId}")
-                    }
-                }
-
-                override fun isFailOnException(): Boolean {
-                    return false
-                }
-
-                override fun isFireOnTransactionLifecycleEvent(): Boolean {
-                    return false
-                }
-
-                override fun getOnTransaction(): String? {
-                    return null
-                }
-            }
+            runtimeListener
         )
-        val caseInstance = this.runtimeService!!.createCaseInstanceBuilder()
-            .caseDefinitionKey(define.id).variables(initVariables)
-            .start()
-        caseInstanceIds.add(caseInstance.id)
+
         taskService = cmmnEngine.cmmnTaskService
 
     }
+
+    fun startCase(caseCreateStrategy: CaseCreateStrategy) {
+        val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
+                when (caseCreateStrategy) {
+                    is CaseCreateStrategy.DefinitionKey -> it.caseDefinitionKey(caseCreateStrategy.key)
+                    is CaseCreateStrategy.DefinitionAndPassIns -> {
+                        it.caseDefinitionKey(caseCreateStrategy.key)
+                        it.variables(caseCreateStrategy.initVariables)
+                    }
+                }
+            }.variables(initVariables).start()
+        caseInstanceIds.add(caseInstance.id)
+    }
 }
+
+interface CaseCreateStrategy {
+    val key: String
+    val initVariables: Map<String, Any>
+
+    class DefinitionKey(override val key: String) : CaseCreateStrategy {
+        override val initVariables: Map<String, Any>
+            get() = emptyMap()
+
+    }
+
+    class DefinitionAndPassIns(override val key: String, private val passIns: List<PassIn.DomainVariable>) :
+        CaseCreateStrategy {
+        override val initVariables: Map<String, Any>
+            get() = passIns.associate { it.name to get(it.name) }
+    }
+}
+
 
 @Component
 class ScheduleService(
@@ -111,11 +122,11 @@ class ScheduleService(
             println(caseId)
             actors.forEach act@{ actor ->
                 val tasks = when (val task = actor.getTask()) {
-                    is GetTask.ByUserName -> {
+                    is GetTaskStrategy.ByUserName -> {
                         taskService.createTaskQuery().taskAssignee(task.userName).caseInstanceId(caseId).list()
                     }
 
-                    is GetTask.ByRoleName -> {
+                    is GetTaskStrategy.ByRoleName -> {
                         taskService.createTaskQuery().taskCandidateGroup(task.roleName).caseInstanceId(caseId).list()
                     }
 
@@ -130,23 +141,7 @@ class ScheduleService(
                             val result = actor.touch(it.task)
                             val effects = result.effects
                             effects.forEach { effect ->
-
-                                when (effect) {
-
-                                    is Effect.TaskVariable -> {
-                                        effect.task as CmmnTask
-                                        taskService.setVariableLocal(effect.task.raw.id, effect.name, effect.value)
-                                    }
-
-                                    is Effect.CaseVariable -> {
-                                        (effect.task as CmmnTask).also {
-                                            runtimeService.setVariable(
-                                                it.caseId, effect.name, effect.value
-                                            )
-                                            it.raw.caseVariables
-                                        }
-                                    }
-                                }
+                                doWithEffect(effect)
                             }
                             when (result) {
                                 is TouchResult.Completed -> taskService.complete((it.task as CmmnTask).raw.id)
@@ -164,31 +159,23 @@ class ScheduleService(
             }
         }
     }
+
+    private fun doWithEffect(effect: Effect) {
+        when (effect) {
+            is Effect.TaskVariable -> {
+                effect.task as CmmnTask
+                taskService.setVariableLocal(effect.task.raw.id, effect.name, effect.value)
+            }
+
+            is Effect.CaseVariable -> {
+                (effect.task as CmmnTask).also {
+                    runtimeService.setVariable(
+                        it.caseId, effect.name, effect.value
+                    )
+                    it.raw.caseVariables
+                }
+            }
+        }
+    }
 }
 
-
-class CmmnTask(val raw: org.flowable.task.api.Task, val caseId: String, val runtimeService: CmmnRuntimeService) : Task {
-    override fun variables(): Map<String, Any> {
-        return runtimeService.getLocalVariables(raw.id)
-    }
-
-    override fun caseVariables(): Map<String, Any> {
-        return runtimeService.getVariables(caseId)
-    }
-
-    override val name: String
-        get() = raw.name
-
-}
-
-class CmmnCase(val raw: org.flowable.cmmn.api.runtime.CaseInstance, val runtimeService: CmmnRuntimeService) : Case {
-
-    override fun variables(): Map<String, Any> {
-        return runtimeService.getVariables(this.id)
-    }
-
-
-    override val id: String
-        get() = raw.id
-
-}

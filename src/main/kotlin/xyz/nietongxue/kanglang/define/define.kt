@@ -34,3 +34,4 @@ data class OnEvent(val planItemOn: String, val event: SentryEvent)
 interface SentryEvent {
     object Complete : SentryEvent
 }
+fun completeOf(planItemOn: String) = OnEvent(planItemOn, SentryEvent.Complete)

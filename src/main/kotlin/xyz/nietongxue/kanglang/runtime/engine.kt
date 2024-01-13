@@ -97,7 +97,6 @@ interface CaseCreateStrategy {
     class DefinitionKey(override val key: String) : CaseCreateStrategy {
         override val initVariables: Map<String, Any>
             get() = emptyMap()
-
     }
 
     class DefinitionAndPassIns(override val key: String, private val passIns: List<PassIn.DomainVariable>) :
@@ -123,7 +122,7 @@ class ScheduleService(
             actors.forEach act@{ actor ->
                 val tasks = when (val task = actor.getTask()) {
                     is GetTaskStrategy.ByUserName -> {
-                        taskService.createTaskQuery().taskAssignee(task.userName).caseInstanceId(caseId).list()
+                        taskService.createTaskQuery().taskCandidateUser(task.userName).caseInstanceId(caseId).list()
                     }
 
                     is GetTaskStrategy.ByRoleName -> {

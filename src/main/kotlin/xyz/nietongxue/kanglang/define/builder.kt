@@ -22,7 +22,7 @@ class CaseDefineBuilder {
     }
 }
 
-class CaseBuilder : CBuilder() {
+class CaseBuilder : CBuilder {
     private val stageDefines: MutableList<StageDefine> = mutableListOf()
     private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
@@ -52,9 +52,12 @@ class CaseBuilder : CBuilder() {
             it.exit = this.exit
         }
     }
+
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
 }
 
-class StageBuilder : CBuilder() {
+class StageBuilder : CBuilder {
     private val taskDefines: MutableList<TaskDefine> = mutableListOf()
     var name: String? = null
 
@@ -75,11 +78,14 @@ class StageBuilder : CBuilder() {
             it.exit = this.exit
         }
     }
+
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
 }
 
-open class CBuilder {
-    var entry: SentryDefine? = null
-    var exit: SentryDefine? = null
+interface CBuilder {
+    var entry: SentryDefine?
+    var exit: SentryDefine?
 
     fun entry(name: String, vararg onEvent: OnEvent) {
         this.entry = SentryDefine(name, onEvent.toList())
@@ -90,22 +96,33 @@ open class CBuilder {
     }
 
 
-
     fun exit(name: String, planItemOn: String, event: SentryEvent) {
         this.exit(name, OnEvent(planItemOn, event))
     }
+
     fun entry(name: String, planItemOn: String, event: SentryEvent) {
         this.entry(name, OnEvent(planItemOn, event))
     }
 
 }
 
-class TaskBuilder : CBuilder() {
+
+
+interface CandidateBuilder {
+    var candidate: Candidate?
+}
+
+class TaskBuilder : CBuilder, CandidateBuilder {
     var name: String? = null
     fun build(): TaskDefine {
         return TaskDefine(name!!).also {
             it.entry = this.entry
             it.exit = this.exit
+            it.candidate = this.candidate
         }
     }
+
+    override var entry: SentryDefine? = null
+    override var exit: SentryDefine? = null
+    override var candidate: Candidate? = null
 }

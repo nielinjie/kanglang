@@ -7,10 +7,10 @@ interface Action {
     fun matchTask(task: Task): Boolean
     val name: String
     fun touch(task: Task): TouchResult
-    fun passIns(task: Task): List<PassIn>
+    val passIns: List<PassIn>
 }
 
-fun forTaskName(taskName: String, passIn: List<PassIn> = emptyList(), actionFun: (Task) -> TouchResult): Action {
+fun forTaskName(taskName: String, passIns: List<PassIn> = emptyList(), actionFun: (Task) -> TouchResult): Action {
     return object : Action {
         override fun matchTask(task: Task): Boolean {
             return task.name == taskName
@@ -23,9 +23,15 @@ fun forTaskName(taskName: String, passIn: List<PassIn> = emptyList(), actionFun:
             return actionFun(task)
         }
 
-        override fun passIns(task: Task): List<PassIn> {
-            return passIn
-        }
+        override val passIns: List<PassIn>
+            get() = passIns
+
+
+    }
+}
+fun simpleTask(taskName:String):Action{
+    return forTaskName(taskName){
+        TouchResult.Completed(it)
     }
 }
 

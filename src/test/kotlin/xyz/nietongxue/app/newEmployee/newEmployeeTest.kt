@@ -1,6 +1,8 @@
-package xyz.nietongxue.kanglang.define
+package xyz.nietongxue.app.newEmployee
 
 import io.kotest.core.spec.style.StringSpec
+import xyz.nietongxue.kanglang.define.caseDefine
+import xyz.nietongxue.kanglang.define.completeOf
 
 class NewEmployeeTest : StringSpec({
     "dsl" {

@@ -1,0 +1,57 @@
+<definitions xmlns="http://www.omg.org/spec/CMMN/20151109/MODEL" xmlns:flowable="http://flowable.org/cmmn"
+             targetNamespace="http://www.flowable.org/casedef">
+    <case id="model_id_new_employee_case" name="new employee case">
+        <casePlanModel id="plan_model_id_model_id_new_employee_case">
+            <planItem id="plan_item_id_model_id_prior_to_starting" definitionRef="model_id_prior_to_starting"/>
+            <planItem id="plan_item_id_model_id_after_starting" definitionRef="model_id_after_starting">
+                <entryCriterion id="entry_criterion_id_start" sentryRef="sentry_id_start"/>
+            </planItem>
+            <planItem id="plan_item_id_model_id_reject_job" definitionRef="model_id_reject_job"/>
+            <sentry id="sentry_id_start">
+                <planItemOnPart id="sentry_on_sentry_id_start_prior_to_starting"
+                                sourceRef="plan_item_id_model_id_prior_to_starting">
+                    <standardEvent>complete</standardEvent>
+                </planItemOnPart>
+            </sentry>
+            <stage id="model_id_prior_to_starting" name="prior to starting">
+                <planItem id="plan_item_id_model_id_create_email_address"
+                          definitionRef="model_id_create_email_address"/>
+                <planItem id="plan_item_id_model_id_allocate_office" definitionRef="model_id_allocate_office"/>
+                <planItem id="plan_item_id_model_id_agree_start_date" definitionRef="model_id_agree_start_date"/>
+                <planItem id="plan_item_id_model_id_sending_joining_letter_to_candidate"
+                          definitionRef="model_id_sending_joining_letter_to_candidate">
+                    <entryCriterion id="entry_criterion_id_sending" sentryRef="sentry_id_sending"/>
+                </planItem>
+                <sentry id="sentry_id_sending">
+                    <planItemOnPart id="sentry_on_sentry_id_sending_agree_start_date"
+                                    sourceRef="plan_item_id_model_id_agree_start_date">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                    <planItemOnPart id="sentry_on_sentry_id_sending_allocate_office"
+                                    sourceRef="plan_item_id_model_id_allocate_office">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                    <planItemOnPart id="sentry_on_sentry_id_sending_create_email_address"
+                                    sourceRef="plan_item_id_model_id_create_email_address">
+                        <standardEvent>complete</standardEvent>
+                    </planItemOnPart>
+                </sentry>
+                <humanTask id="model_id_create_email_address" name="create email address"
+                           flowable:candidateGroups="hr"/>
+                <humanTask id="model_id_allocate_office" name="allocate office" flowable:candidateGroups="hr"/>
+                <humanTask id="model_id_agree_start_date" name="agree start date" flowable:candidateGroups="hr"/>
+                <humanTask id="model_id_sending_joining_letter_to_candidate" name="sending joining letter to candidate"
+                           flowable:candidateGroups="hr"/>
+            </stage>
+            <stage id="model_id_after_starting" name="after starting">
+                <planItem id="plan_item_id_model_id_fill_in_paperwork" definitionRef="model_id_fill_in_paperwork"/>
+                <planItem id="plan_item_id_model_id_new_starter_training"
+                          definitionRef="model_id_new_starter_training"/>
+                <humanTask id="model_id_fill_in_paperwork" name="fill in paperwork" flowable:candidateUsers="johnDoe"/>
+                <humanTask id="model_id_new_starter_training" name="new starter training"
+                           flowable:candidateUsers="johnDoe"/>
+            </stage>
+            <humanTask id="model_id_reject_job" name="reject job" flowable:candidateUsers="johnDoe"/>
+        </casePlanModel>
+    </case>
+</definitions>

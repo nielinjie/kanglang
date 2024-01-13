@@ -13,9 +13,7 @@ val newEmployeeActor = object : Actor {
             TouchResult.Completed(task, Effect.CaseVariable(task, "paper", "myEmail" to it))
         } ?: return@forTaskName TouchResult.Error(task, "can't find email in case")
     }
-    val newTrain = forTaskName(NEW_STARTER_TRAINING) { task ->
-        TouchResult.Completed(task)
-    }
+    val newTrain = simpleTask(NEW_STARTER_TRAINING)
     override val name: String
         get() = "newEmployee"
 
@@ -43,15 +41,9 @@ val hrActor = object : Actor {
     val create = forTaskName(CREATE_EMAIL_ADDRESS) { task ->
         TouchResult.Completed(task, Effect.CaseVariable(task, "email", "john@new.com"))
     }
-    val agree = forTaskName(AGREE_START_DATE) { task ->
-        TouchResult.Completed(task)
-    }
-    val allocate = forTaskName(ALLOCATE_OFFICE) { task ->
-        TouchResult.Completed(task)
-    }
-    val send = forTaskName(SENDING_JOINING_LETTER_TO_CANDIDATE) { task ->
-        TouchResult.Completed(task)
-    }
+    val agree = simpleTask(AGREE_START_DATE)
+    val allocate = simpleTask(ALLOCATE_OFFICE)
+    val send = simpleTask(SENDING_JOINING_LETTER_TO_CANDIDATE)
     override val name: String = "hr"
 
     override fun getTask(): GetTaskStrategy {

@@ -12,3 +12,11 @@ interface DefineToDeploy {
         val content: String
     ) : DefineToDeploy
 }
+
+fun defineToDeploy(caseDefine: CaseDefine): DefineToDeploy {
+
+    return DefineToDeploy.DefineByString(
+        caseDefine.name.lowercase()+".cmmn",
+        building(caseDefine).toString(false)
+    )
+}

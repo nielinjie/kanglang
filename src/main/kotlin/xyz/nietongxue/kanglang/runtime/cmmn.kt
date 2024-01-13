@@ -5,6 +5,9 @@ import org.flowable.cmmn.api.event.FlowableCaseEndedEvent
 import org.flowable.cmmn.api.event.FlowableCaseStartedEvent
 import org.flowable.common.engine.api.delegate.event.FlowableEvent
 import org.flowable.common.engine.api.delegate.event.FlowableEventListener
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import xyz.nietongxue.common.log.Log
 
 
 class CmmnTask(val raw: org.flowable.task.api.Task, val caseId: String, val runtimeService: CmmnRuntimeService) : Task {
@@ -33,11 +36,18 @@ class CmmnCase(val raw: org.flowable.cmmn.api.runtime.CaseInstance, val runtimeS
 
 }
 
-val runtimeListener = object : FlowableEventListener {
+@Component
+class RuntimeListener(
+    @Autowired
+    val logService: LogService
+) : FlowableEventListener {
+    fun log(logItem: EngineLogItem) {
+        this.logService.log(Log(logItem))
+    }
+
     override fun onEvent(event: FlowableEvent?) {
-//                    println("event: $event")
         when (event) {
-            is FlowableCaseStartedEvent -> println("case started: ${event.scopeId}")
+            is FlowableCaseStartedEvent -> log(EngineLogItem.CaseStarted(event.scopeId))
             is FlowableCaseEndedEvent -> println("case ended: ${event.scopeId}")
         }
     }

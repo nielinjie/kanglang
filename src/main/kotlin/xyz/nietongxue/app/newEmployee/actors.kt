@@ -1,15 +1,22 @@
 package xyz.nietongxue.app.newEmployee
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
+import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.*
+import xyz.nietongxue.kanglang.runtime.LogService
 import xyz.nietongxue.kanglang.runtime.Task
 
-
-val newEmployeeActor = object : Actor {
+@Component
+class NewEmployeeActor(
+    @Autowired
+    override val logService: LogService
+) : Actor {
 
 
     val fill = forTaskName(FILL_IN_PAPERWORK) { task ->
         task.caseVariables()["email"]?.let {
-            println("my email is $it")
+            log("my email is $it")
             TouchResult.Completed(task, Effect.CaseVariable(task, "paper", "myEmail" to it))
         } ?: return@forTaskName TouchResult.Error(task, "can't find email in case")
     }
@@ -22,7 +29,7 @@ val newEmployeeActor = object : Actor {
     }
 
     override fun touch(task: Task): TouchResult {
-        println("as new employee, doIt: ${task.name}")
+        log(ActorLogItem.GoingToDoItem(task.name, name))
         return when {
             fill.matchTask(task) -> fill.touch(task)
             newTrain.matchTask(task) -> newTrain.touch(task)
@@ -31,13 +38,20 @@ val newEmployeeActor = object : Actor {
     }
 
     override fun choose(tasks: List<Task>): ChooseResult {
-        return tasks.filterNot { it.name == REJECT_JOB }.firstOrNull()?.let { ChooseResult.Chosen(it) }
-            ?: ChooseResult.NotChosen()
+        if (tasks.isEmpty()) return ChooseResult.NothingToChose
+        return tasks.filterNot { it.name == REJECT_JOB }.firstOrNull()?.let { ChooseResult.ChosenOne(it) }
+            ?: ChooseResult.NotChosen
     }
 
 }
 
-val hrActor = object : Actor {
+@Component
+class HrActor(
+    @Autowired
+    override val logService: LogService
+) : Actor {
+
+
     val create = forTaskName(CREATE_EMAIL_ADDRESS) { task ->
         TouchResult.Completed(task, Effect.CaseVariable(task, "email", "john@new.com"))
     }
@@ -52,7 +66,7 @@ val hrActor = object : Actor {
 
     override fun touch(task: Task): TouchResult {
 
-        println("as hr, doIt: ${task.name}")
+        log(ActorLogItem.GoingToDoItem(task.name, name))
         return when {
             create.matchTask(task) -> create.touch(task)
             agree.matchTask(task) -> agree.touch(task)
@@ -62,4 +76,3 @@ val hrActor = object : Actor {
         }
     }
 }
-val actors = listOf(newEmployeeActor, hrActor)

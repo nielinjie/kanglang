@@ -11,28 +11,46 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
-import xyz.nietongxue.kanglang.actor.*
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
+import xyz.nietongxue.common.log.Log
+import xyz.nietongxue.kanglang.actor.Actor
+import xyz.nietongxue.kanglang.actor.PassIn
 import xyz.nietongxue.kanglang.define.DefineToDeploy
 import xyz.nietongxue.kanglang.material.get
+import java.time.Duration
+
+
+interface EngineLogItem {
+    data class CaseStarted(val caseId: String) : EngineLogItem
+}
 
 @EnableScheduling
 @Configuration
 class Engine(
     @Autowired val cmmnEngine: CmmnEngine,
     @Resource(name = "define") val define: DefineToDeploy,
-    @Resource(name = "initVariables") val initVariables: Map<String, Any>
+    @Resource(name = "initVariables") val initVariables: Map<String, Any>,
+    @Autowired val logService: LogService,
+    @Autowired val actors: List<Actor>
 ) {
 
 
     private val log = LoggerFactory.getLogger(Engine::class.java)
 
-
     var runtimeService: CmmnRuntimeService? = null
     var taskService: CmmnTaskService? = null
 
     val caseInstanceIds: MutableList<String> = mutableListOf()
+
+    var scheduler: ThreadPoolTaskScheduler? = null
+
+    @Autowired
+    var runtimeListener: RuntimeListener? = null
+
+
+    private fun log(logItem: EngineLogItem) {
+        this.logService.log(Log(logItem))
+    }
 
     @Bean
     fun taskService(): CmmnTaskService {
@@ -50,22 +68,32 @@ class Engine(
         return caseInstanceIds
     }
 
+    fun threadPoolTaskScheduler(): ThreadPoolTaskScheduler {
+        val threadPoolTaskScheduler = ThreadPoolTaskScheduler()
+        threadPoolTaskScheduler.setPoolSize(5)
+        threadPoolTaskScheduler.setThreadNamePrefix(
+            "FetcherScheduler"
+        )
+        return threadPoolTaskScheduler
+    }
+
+
     @PostConstruct
     fun onInit(): Unit {
         log.info("engine: {}", cmmnEngine)
         val cmmnRepositoryService: CmmnRepositoryService = cmmnEngine.cmmnRepositoryService
         val cmmnDeployment = cmmnRepositoryService.createDeployment().also {
-                when (define) {
-                    is DefineToDeploy.DefineByResource -> it.addClasspathResource((define as DefineToDeploy.DefineByResource).resourcePath)
-                    is DefineToDeploy.DefineByString -> {
-                        (define as DefineToDeploy.DefineByString).also { d ->
-                            it.addString(d.id, d.content)
-                        }
+            when (define) {
+                is DefineToDeploy.DefineByResource -> it.addClasspathResource((define as DefineToDeploy.DefineByResource).resourcePath)
+                is DefineToDeploy.DefineByString -> {
+                    (define as DefineToDeploy.DefineByString).also { d ->
+                        it.addString(d.id, d.content)
                     }
-
                 }
-            }.deploy()
-        val caseDefinitions = cmmnRepositoryService.createCaseDefinitionQuery().list()
+
+            }
+        }.deploy()
+//        val caseDefinitions = cmmnRepositoryService.createCaseDefinitionQuery().list()
         this.runtimeService = cmmnEngine.cmmnRuntimeService!!
 
         this.runtimeService!!.addEventListener(
@@ -74,18 +102,26 @@ class Engine(
 
         taskService = cmmnEngine.cmmnTaskService
 
+        this.scheduler = threadPoolTaskScheduler().also {
+            it.initialize()
+            it.scheduleAtFixedRate(
+                Fetcher(actors, taskService!!, runtimeService!!, caseInstanceIds, logService),
+                Duration.ofMillis(1000)
+            )
+        }
     }
 
     fun startCase(caseCreateStrategy: CaseCreateStrategy) {
         val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
-                when (caseCreateStrategy) {
-                    is CaseCreateStrategy.DefinitionKey -> it.caseDefinitionKey(caseCreateStrategy.key)
-                    is CaseCreateStrategy.DefinitionAndPassIns -> {
-                        it.caseDefinitionKey(caseCreateStrategy.key)
-                        it.variables(caseCreateStrategy.initVariables)
-                    }
+            when (caseCreateStrategy) {
+                is CaseCreateStrategy.DefinitionKey -> it.caseDefinitionKey(caseCreateStrategy.key)
+                is CaseCreateStrategy.DefinitionAndPassIns -> {
+                    it.caseDefinitionKey(caseCreateStrategy.key)
+                    it.variables(caseCreateStrategy.initVariables)
                 }
-            }.variables(initVariables).start()
+            }
+        }.variables(initVariables).start()
+        log(EngineLogItem.CaseStarted(caseInstance.id))
         caseInstanceIds.add(caseInstance.id)
     }
 }
@@ -107,74 +143,5 @@ interface CaseCreateStrategy {
 }
 
 
-@Component
-class ScheduleService(
-    @Autowired val actors: List<Actor>,
-    @Autowired val taskService: CmmnTaskService,
-    @Autowired val runtimeService: CmmnRuntimeService,
-    @Autowired val caseInstanceIds: List<String>
-) {
-    @Scheduled(fixedDelay = 1000)
-    fun schedule() {
-        println("schedule")
-        caseInstanceIds.forEach { caseId ->
-            println(caseId)
-            actors.forEach act@{ actor ->
-                val tasks = when (val task = actor.getTask()) {
-                    is GetTaskStrategy.ByUserName -> {
-                        taskService.createTaskQuery().taskCandidateUser(task.userName).caseInstanceId(caseId).list()
-                    }
 
-                    is GetTaskStrategy.ByRoleName -> {
-                        taskService.createTaskQuery().taskCandidateGroup(task.roleName).caseInstanceId(caseId).list()
-                    }
-
-                    else -> error("unknown task: $task")
-                }
-                if (tasks.isEmpty()) {
-                    return@act
-                }
-                actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService) }).also {
-                    when (it) {
-                        is ChooseResult.Chosen -> {
-                            val result = actor.touch(it.task)
-                            val effects = result.effects
-                            effects.forEach { effect ->
-                                doWithEffect(effect)
-                            }
-                            when (result) {
-                                is TouchResult.Completed -> taskService.complete((it.task as CmmnTask).raw.id)
-                                is TouchResult.NotCompleted -> return@act
-                                is TouchResult.Error -> {
-                                    println("error: ${result.log}")
-                                    return@act
-                                }
-                            }
-                        }
-
-                        is ChooseResult.NotChosen -> return@act
-                    }
-                }
-            }
-        }
-    }
-
-    private fun doWithEffect(effect: Effect) {
-        when (effect) {
-            is Effect.TaskVariable -> {
-                effect.task as CmmnTask
-                taskService.setVariableLocal(effect.task.raw.id, effect.name, effect.value)
-            }
-
-            is Effect.CaseVariable -> {
-                (effect.task as CmmnTask).also {
-                    runtimeService.setVariable(
-                        it.caseId, effect.name, effect.value
-                    )
-                    it.raw.caseVariables
-                }
-            }
-        }
-    }
-}
 

@@ -10,8 +10,10 @@ import xyz.nietongxue.kanglang.actor.Actor
 import xyz.nietongxue.kanglang.define.DefineToDeploy
 import xyz.nietongxue.kanglang.define.building
 import xyz.nietongxue.kanglang.define.defineModelId
+import xyz.nietongxue.kanglang.define.defineToDeploy
 import xyz.nietongxue.kanglang.runtime.CaseCreateStrategy
 import xyz.nietongxue.kanglang.runtime.Engine
+import xyz.nietongxue.kanglang.runtime.LogService
 
 
 fun main() {
@@ -24,10 +26,7 @@ class Application() {
 
     @Bean(name = ["define"])
     fun define(): DefineToDeploy {
-        return DefineToDeploy.DefineByString("new_employee_case.cmmn", building(define).toString(false).also {
-            println(it)
-        })
-//        return DefineToDeploy.DefineByResource("new_employee_case.cmmn","newEmployee.cmmn.xml")
+        return defineToDeploy(define)
 
     }
 
@@ -37,27 +36,19 @@ class Application() {
     }
 
     @Bean
-    fun actors(taskService: CmmnTaskService): List<Actor> {
-        return actors
+    fun actors(
+        actor: HrActor, newEmployeeActor: NewEmployeeActor
+    ): List<Actor> {
+        return listOf(actor, newEmployeeActor)
     }
 
     @Bean
     fun init(engine: Engine): CommandLineRunner {
         return CommandLineRunner {
-            println("starting case")
-            engine.cmmnEngine.cmmnRepositoryService.createCaseDefinitionQuery().list().also {
-                it.forEach {
-                    println(it.key)
-                }
-            }
             engine.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
         }
     }
+
 }
 
 
-fun List<Task>.print() {
-    this.forEach {
-        println("${it.name} - ${it.assignee} - ${it.owner}")
-    }
-}

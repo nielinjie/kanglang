@@ -23,11 +23,14 @@ interface EngineLogItem {
     data class CaseStarted(val caseId: String) : EngineLogItem
 }
 
+class InitVariables(val variables: Map<String, Any>)
+
+
 @Configuration
 class Engine(
     @Autowired val cmmnEngine: CmmnEngine,
-    @Resource(name = "define") val define: DefineToDeploy,
-    @Resource(name = "initVariables") val initVariables: Map<String, Any>,
+    @Autowired val define: DefineToDeploy,
+    @Autowired val initVariables: InitVariables,
     @Autowired val logService: LogService,
     @Autowired val actors: List<Actor>
 ) {
@@ -111,14 +114,9 @@ class Engine(
 
     fun startCase(caseCreateStrategy: CaseCreateStrategy) {
         val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
-            when (caseCreateStrategy) {
-                is CaseCreateStrategy.DefinitionKey -> it.caseDefinitionKey(caseCreateStrategy.key)
-                is CaseCreateStrategy.DefinitionAndPassIns -> {
-                    it.caseDefinitionKey(caseCreateStrategy.key)
-                    it.variables(caseCreateStrategy.initVariables)
-                }
-            }
-        }.variables(initVariables).start()
+            it.caseDefinitionKey(caseCreateStrategy.key)
+            it.variables(caseCreateStrategy.initVariables)
+        }.variables(initVariables.variables).start()
         caseInstanceIds.add(caseInstance.id)
     }
 }
@@ -127,15 +125,18 @@ interface CaseCreateStrategy {
     val key: String
     val initVariables: Map<String, Any>
 
-    class DefinitionKey(override val key: String) : CaseCreateStrategy {
-        override val initVariables: Map<String, Any>
-            get() = emptyMap()
+    class DefinitionKey(override val key: String, override val initVariables: Map<String, Any>) : CaseCreateStrategy {
+
     }
 
-    class DefinitionAndPassIns(override val key: String, private val passIns: List<PassIn.DomainVariable>) :
+    class DefinitionAndPassIns(
+        override val key: String,
+        val init: Map<String, Any>,
+        private val passIns: List<PassIn.DomainVariable>
+    ) :
         CaseCreateStrategy {
         override val initVariables: Map<String, Any>
-            get() = passIns.associate { it.name to get(it.name) }
+            get() = init.plus(passIns.associate { it.name to get(it.name) })
     }
 }
 

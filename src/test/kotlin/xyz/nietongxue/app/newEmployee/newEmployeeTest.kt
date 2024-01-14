@@ -9,26 +9,37 @@ import xyz.nietongxue.kanglang.runtime.CaseCreateStrategy
 import xyz.nietongxue.kanglang.runtime.Engine
 import xyz.nietongxue.kanglang.runtime.LogService
 
-@SpringBootTest
+
+@SpringBootTest(classes = [Config::class, Application::class])
 class NewEmployeeTest {
 
     @Autowired
-    var engine:Engine?=null
+    var engine: Engine? = null
+
     @Autowired
-    var logService: LogService?=null
+    var logService: LogService? = null
+
     @Test
     fun testNewEmployee() {
-        logService!!.printLogs=false
-        engine!!.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
+        logService!!.printLogs = true
+        engine!!.startCase(
+            CaseCreateStrategy.DefinitionKey(
+                defineModelId("new employee case"),
+                mapOf("potentialEmployee" to "johnDoe")
+            )
+        )
         Thread.sleep(10000)
         val logs = logService!!.logs
         val emailGot = logs.filter {
-            it.message is ActorLogItem.GenericItem &&
-                    (it.message as ActorLogItem.GenericItem).string.contains("my email is")
+            it.message.let {
+                it is ActorLogItem.GenericItem
+                        && it.string.contains("my email is")
+                        && it.string.contains("johnDoe@new.com")
+            }
         }
         emailGot.forEach {
             println(it)
         }
-        assert(emailGot.size==1)
+        assert(emailGot.size == 1)
     }
 }

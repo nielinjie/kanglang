@@ -10,27 +10,25 @@ interface Action {
     val passIns: List<PassIn>
 }
 
-fun forTaskName(taskName: String, passIns: List<PassIn> = emptyList(), actionFun: (Task) -> TouchResult): Action {
+fun actionForTask(taskName: String, passIns: List<PassIn> = emptyList(), actionFun: (Task) -> TouchResult): Action {
     return object : Action {
         override fun matchTask(task: Task): Boolean {
             return task.name == taskName
         }
 
-        override val name: String
-            get() = "action for $taskName"
+        override val name: String = "action for $taskName"
 
         override fun touch(task: Task): TouchResult {
             return actionFun(task)
         }
 
-        override val passIns: List<PassIn>
-            get() = passIns
+        override val passIns: List<PassIn> = passIns
 
 
     }
 }
-fun simpleTask(taskName:String):Action{
-    return forTaskName(taskName){
+fun simpleAction(taskName:String):Action{
+    return actionForTask(taskName){
         TouchResult.Completed(it)
     }
 }

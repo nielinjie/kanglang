@@ -24,23 +24,6 @@ fun main() {
 @SpringBootApplication(scanBasePackages = ["xyz.nietongxue"])
 class Application() {
 
-    @Bean(name = ["define"])
-    fun define(): DefineToDeploy {
-        return defineToDeploy(define)
-    }
-
-    @Bean(name = ["initVariables"])
-    fun initVariables(): Map<String, Any> {
-        return mapOf("potentialEmployee" to "johnDoe")
-    }
-
-//
-//    @Bean
-//    fun init(engine: Engine): CommandLineRunner {
-//        return CommandLineRunner {
-//            engine.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
-//        }
-//    }
 
 }
 

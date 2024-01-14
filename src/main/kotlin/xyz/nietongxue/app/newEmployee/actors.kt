@@ -11,15 +11,16 @@ class NewEmployeeActor(
     @Autowired
     override val logService: LogService
 ) : Actor {
-
-
-    val fill = forTaskName(FILL_IN_PAPERWORK) { task ->
+    val fill = actionForTask(FILL_IN_PAPERWORK) { task ->
         task.caseVariables()["email"]?.let {
             log("my email is $it")
-            TouchResult.Completed(task, Effect.CaseVariable(task, "paper", "myEmail" to it))
-        } ?: return@forTaskName TouchResult.Error(task, "can't find email in case")
+            TouchResult.Completed(
+                task,
+                Effect.CaseVariable(task, "paper", "myEmail" to it)
+            )
+        } ?: return@actionForTask TouchResult.Error(task, "can't find email in case")
     }
-    val newTrain = simpleTask(NEW_STARTER_TRAINING)
+    val newTrain = simpleAction(NEW_STARTER_TRAINING)
     override val name: String
         get() = "newEmployee"
 
@@ -37,7 +38,6 @@ class NewEmployeeActor(
         return tasks.filterNot { it.name == REJECT_JOB }.firstOrNull()?.let { ChooseResult.ChosenOne(it) }
             ?: ChooseResult.NotChosen
     }
-
 }
 
 @Component
@@ -45,14 +45,16 @@ class HrActor(
     @Autowired
     override val logService: LogService
 ) : Actor {
-
-
-    val create = forTaskName(CREATE_EMAIL_ADDRESS) { task ->
-        TouchResult.Completed(task, Effect.CaseVariable(task, "email", "john@new.com"))
+    val create = actionForTask(CREATE_EMAIL_ADDRESS) { task ->
+        TouchResult.Completed(
+            task,
+            Effect.CaseVariable(task, "email",
+                task.caseVariables()["potentialEmployee"].toString() + "@new.com")
+        )
     }
-    val agree = simpleTask(AGREE_START_DATE)
-    val allocate = simpleTask(ALLOCATE_OFFICE)
-    val send = simpleTask(SENDING_JOINING_LETTER_TO_CANDIDATE)
+    val agree = simpleAction(AGREE_START_DATE)
+    val allocate = simpleAction(ALLOCATE_OFFICE)
+    val send = simpleAction(SENDING_JOINING_LETTER_TO_CANDIDATE)
     override val name: String = "hr"
 
     override fun fetch(): FetchStrategy {

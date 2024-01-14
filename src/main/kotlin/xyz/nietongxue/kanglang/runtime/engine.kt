@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.Actor
@@ -104,7 +103,7 @@ class Engine(
         this.scheduler = threadPoolTaskScheduler().also {
             it.initialize()
             it.scheduleAtFixedRate(
-                Fetcher(actors, taskService!!, runtimeService!!, caseInstanceIds, logService),
+                Dispatcher(actors, taskService!!, runtimeService!!, caseInstanceIds, logService),
                 Duration.ofMillis(1000)
             )
         }

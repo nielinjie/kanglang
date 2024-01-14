@@ -2,7 +2,6 @@ package xyz.nietongxue.app.newEmployee
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.*
 import xyz.nietongxue.kanglang.runtime.LogService
 import xyz.nietongxue.kanglang.runtime.Task
@@ -24,17 +23,13 @@ class NewEmployeeActor(
     override val name: String
         get() = "newEmployee"
 
-    override fun getTask(): GetTaskStrategy {
-        return GetTaskStrategy.ByUserName("johnDoe")
+    override fun fetch(): FetchStrategy {
+        return FetchStrategy.ByUserName("johnDoe")
     }
 
     override fun touch(task: Task): TouchResult {
         log(ActorLogItem.GoingToDoItem(task.name, name))
-        return when {
-            fill.matchTask(task) -> fill.touch(task)
-            newTrain.matchTask(task) -> newTrain.touch(task)
-            else -> error("unknown task: ${task.name}")
-        }
+        return matchOneByOne(task, listOf(fill, newTrain))
     }
 
     override fun choose(tasks: List<Task>): ChooseResult {
@@ -60,19 +55,14 @@ class HrActor(
     val send = simpleTask(SENDING_JOINING_LETTER_TO_CANDIDATE)
     override val name: String = "hr"
 
-    override fun getTask(): GetTaskStrategy {
-        return GetTaskStrategy.ByRoleName("hr")
+    override fun fetch(): FetchStrategy {
+        return FetchStrategy.ByRoleName("hr")
     }
 
     override fun touch(task: Task): TouchResult {
-
         log(ActorLogItem.GoingToDoItem(task.name, name))
-        return when {
-            create.matchTask(task) -> create.touch(task)
-            agree.matchTask(task) -> agree.touch(task)
-            allocate.matchTask(task) -> allocate.touch(task)
-            send.matchTask(task) -> send.touch(task)
-            else -> error("unknown task: ${task.name}")
-        }
+        return matchOneByOne(task, listOf(create, agree, allocate, send))
     }
+
+
 }

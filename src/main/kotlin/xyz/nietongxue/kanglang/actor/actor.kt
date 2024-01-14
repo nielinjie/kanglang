@@ -7,13 +7,15 @@ import xyz.nietongxue.kanglang.runtime.Task
 
 interface ActorLogItem {
     data class GenericItem(val string: String) : ActorLogItem
-    data class GoingToDoItem(val taskName: String, val actorName: String,val string:String="GoingToDo") : ActorLogItem
-    data class DoneItem(val taskName: String, val actorName: String,val string:String="Done") : ActorLogItem
+    data class GoingToDoItem(val taskName: String, val actorName: String, val string: String = "GoingToDo") :
+        ActorLogItem
+
+    data class DoneItem(val taskName: String, val actorName: String, val string: String = "Done") : ActorLogItem
 }
 
-interface GetTaskStrategy {
-    class ByUserName(val userName: String) : GetTaskStrategy
-    class ByRoleName(val roleName: String) : GetTaskStrategy
+interface FetchStrategy {
+    class ByUserName(val userName: String) : FetchStrategy
+    class ByRoleName(val roleName: String) : FetchStrategy
 }
 
 
@@ -43,14 +45,26 @@ interface Actor {
     fun log(logString: String) {
         logService.log(Log(ActorLogItem.GenericItem(logString)))
     }
-    fun log(logItem:ActorLogItem){
+
+    fun log(logItem: ActorLogItem) {
         logService.log(Log(logItem))
     }
+
     val name: String
-    fun getTask(): GetTaskStrategy
+    fun fetch(): FetchStrategy
     fun touch(task: Task): TouchResult
     fun choose(tasks: List<Task>): ChooseResult {
+        if (tasks.isEmpty()) return ChooseResult.NothingToChose
         return tasks.firstOrNull()?.let { ChooseResult.ChosenOne(it) } ?: ChooseResult.NotChosen
+    }
+
+    fun matchOneByOne(task: Task, listOf: List<Action>): TouchResult {
+        listOf.forEach {
+            if (it.matchTask(task)) {
+                return it.touch(task)
+            }
+        }
+        error("unknown task: ${task.name}")
     }
 }
 

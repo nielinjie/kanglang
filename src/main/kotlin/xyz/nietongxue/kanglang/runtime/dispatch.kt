@@ -7,33 +7,33 @@ import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.*
 
 
-interface FetcherLogItem {
-    data class FetchingForCase(val caseId: String) : FetcherLogItem
-    data class TouchDone(val touchResult: TouchResult) : FetcherLogItem
-    data class ChosenDone(val chooseResult: ChooseResult) : FetcherLogItem
+interface DispatcherLogItem {
+    data class DispatchForCase(val caseId: String) : DispatcherLogItem
+    data class TouchDone(val touchResult: TouchResult) : DispatcherLogItem
+    data class ChosenDone(val chooseResult: ChooseResult) : DispatcherLogItem
 }
 
-class Fetcher(
+class Dispatcher(
     @Autowired val actors: List<Actor>,
     @Autowired val taskService: CmmnTaskService,
     @Autowired val runtimeService: CmmnRuntimeService,
     @Autowired val caseInstanceIds: List<String>,
     @Autowired val logService: LogService
 ) : Runnable {
-    private fun log(logItem: FetcherLogItem) {
+    private fun log(logItem: DispatcherLogItem) {
         this.logService.log(Log(logItem))
     }
 
     override fun run() {
         caseInstanceIds.forEach { caseId ->
-            log(FetcherLogItem.FetchingForCase(caseId))
+            log(DispatcherLogItem.DispatchForCase(caseId))
             actors.forEach act@{ actor ->
-                val tasks = when (val task = actor.getTask()) {
-                    is GetTaskStrategy.ByUserName -> {
+                val tasks = when (val task = actor.fetch()) {
+                    is FetchStrategy.ByUserName -> {
                         taskService.createTaskQuery().taskCandidateUser(task.userName).caseInstanceId(caseId).list()
                     }
 
-                    is GetTaskStrategy.ByRoleName -> {
+                    is FetchStrategy.ByRoleName -> {
                         taskService.createTaskQuery().taskCandidateGroup(task.roleName).caseInstanceId(caseId).list()
                     }
 
@@ -43,11 +43,11 @@ class Fetcher(
                     return@act
                 }
                 actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService) }).also {
-                    log(FetcherLogItem.ChosenDone(it))
+                    log(DispatcherLogItem.ChosenDone(it))
                     when (it) {
                         is ChooseResult.ChosenOne -> {
                             val result = actor.touch(it.task)
-                            log(FetcherLogItem.TouchDone(result))
+                            log(DispatcherLogItem.TouchDone(result))
                             val effects = result.effects
                             effects.forEach { effect ->
                                 doWithEffect(effect)

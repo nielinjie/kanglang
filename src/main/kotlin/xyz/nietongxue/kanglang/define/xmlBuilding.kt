@@ -114,25 +114,45 @@ fun building(caseDefine: CaseDefine): Node {
 
 
 fun Node.criterion(hasCriterion: HasCriterion) {
-    if (hasCriterion.entry != null) {
-        "entryCriterion" {
-            attribute("id", entryCriterionId(hasCriterion.entry!!))
-            attribute("sentryRef", sentryId(hasCriterion.entry!!.name))
-        }
-    }
-    if (hasCriterion.exit != null) {
-        "exitCriterion" {
-            attribute("id", exitCriterionId(hasCriterion.exit!!))
-            attribute("sentryRef", sentryId(hasCriterion.exit!!.name))
+
+//    if (hasCriterion.entry != null) {
+//        "entryCriterion" {
+//            attribute("id", entryCriterionId(hasCriterion.entry!!))
+//            attribute("sentryRef", sentryId(hasCriterion.entry!!.name))
+//        }
+//    }
+//    if (hasCriterion.exit != null) {
+//        "exitCriterion" {
+//            attribute("id", exitCriterionId(hasCriterion.exit!!))
+//            attribute("sentryRef", sentryId(hasCriterion.exit!!.name))
+//        }
+//    }
+    hasCriterion.criterion.forEach {
+        when (it) {
+            is SentryDefine.EntrySentry -> {
+                "entryCriterion" {
+                    attribute("id", entryCriterionId(it))
+                    attribute("sentryRef", sentryId(it.name))
+                }
+            }
+            is SentryDefine.ExitSentry -> {
+                "exitCriterion" {
+                    attribute("id", exitCriterionId(it))
+                    attribute("sentryRef", sentryId(it.name))
+                }
+            }
         }
     }
 }
 fun Node.sentries(hasCriterion: HasCriterion) {
-    if (hasCriterion.entry != null) {
-        sentry(hasCriterion.entry!!)
-    }
-    if (hasCriterion.exit != null) {
-        sentry(hasCriterion.exit!!)
+//    if (hasCriterion.entry != null) {
+//        sentry(hasCriterion.entry!!)
+//    }
+//    if (hasCriterion.exit != null) {
+//        sentry(hasCriterion.exit!!)
+//    }
+    hasCriterion.criterion.forEach {
+        sentry(it)
     }
 }
 

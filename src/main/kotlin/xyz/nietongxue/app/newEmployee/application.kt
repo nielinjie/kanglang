@@ -27,7 +27,6 @@ class Application() {
     @Bean(name = ["define"])
     fun define(): DefineToDeploy {
         return defineToDeploy(define)
-
     }
 
     @Bean(name = ["initVariables"])
@@ -35,19 +34,13 @@ class Application() {
         return mapOf("potentialEmployee" to "johnDoe")
     }
 
-    @Bean
-    fun actors(
-        actor: HrActor, newEmployeeActor: NewEmployeeActor
-    ): List<Actor> {
-        return listOf(actor, newEmployeeActor)
-    }
-
-    @Bean
-    fun init(engine: Engine): CommandLineRunner {
-        return CommandLineRunner {
-            engine.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
-        }
-    }
+//
+//    @Bean
+//    fun init(engine: Engine): CommandLineRunner {
+//        return CommandLineRunner {
+//            engine.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
+//        }
+//    }
 
 }
 

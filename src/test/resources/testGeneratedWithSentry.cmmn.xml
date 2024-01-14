@@ -9,7 +9,7 @@
                     <entryCriterion id="entry_criterion_id_entry_1" sentryRef="sentry_id_entry_1"/>
                 </planItem>
                 <sentry id="sentry_id_entry_1">
-                    <planItemOnPart id="sentry_on_sentry_id_entry_1_task1" sourceRef="plan_item_id_model_id_task_1">
+                    <planItemOnPart id="sentry_on_sentry_id_entry_1_task_1" sourceRef="plan_item_id_model_id_task_1">
                         <standardEvent>complete</standardEvent>
                     </planItemOnPart>
                 </sentry>

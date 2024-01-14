@@ -48,13 +48,11 @@ class CaseBuilder : CBuilder {
 
     fun build(): CaseDefine {
         return CaseDefine(this.name!!, stageDefines, taskDefines).also {
-            it.entry = this.entry
-            it.exit = this.exit
+            it.criterion = this.sentryDefines
         }
     }
+    override var sentryDefines: MutableList<SentryDefine> = mutableListOf()
 
-    override var entry: SentryDefine? = null
-    override var exit: SentryDefine? = null
 }
 
 class StageBuilder : CBuilder {
@@ -74,25 +72,23 @@ class StageBuilder : CBuilder {
 
     fun build(): StageDefine {
         return StageDefine(this.name!!, taskDefines).also {
-            it.entry = this.entry
-            it.exit = this.exit
+            it.criterion= this.sentryDefines
         }
     }
 
-    override var entry: SentryDefine? = null
-    override var exit: SentryDefine? = null
+    override var sentryDefines: MutableList<SentryDefine> = mutableListOf()
+
 }
 
 interface CBuilder {
-    var entry: SentryDefine?
-    var exit: SentryDefine?
+    var sentryDefines: MutableList<SentryDefine>
 
     fun entry(name: String, vararg onEvent: OnEvent) {
-        this.entry = SentryDefine(name, onEvent.toList())
+        this.sentryDefines.add(SentryDefine.EntrySentry(name, onEvent.toList()))
     }
 
     fun exit(name: String, vararg onEvent: OnEvent) {
-        this.exit = SentryDefine(name, onEvent.toList())
+        this.sentryDefines.add(SentryDefine.ExitSentry(name, onEvent.toList()))
     }
 
 
@@ -107,7 +103,6 @@ interface CBuilder {
 }
 
 
-
 interface CandidateBuilder {
     var candidate: Candidate?
 }
@@ -116,13 +111,11 @@ class TaskBuilder : CBuilder, CandidateBuilder {
     var name: String? = null
     fun build(): TaskDefine {
         return TaskDefine(name!!).also {
-            it.entry = this.entry
-            it.exit = this.exit
+            it.criterion = this.sentryDefines
             it.candidate = this.candidate
         }
     }
+    override var sentryDefines: MutableList<SentryDefine> = mutableListOf()
 
-    override var entry: SentryDefine? = null
-    override var exit: SentryDefine? = null
     override var candidate: Candidate? = null
 }

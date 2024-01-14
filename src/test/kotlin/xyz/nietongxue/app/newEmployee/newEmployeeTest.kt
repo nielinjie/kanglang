@@ -1,35 +1,34 @@
 package xyz.nietongxue.app.newEmployee
 
-import io.kotest.core.spec.style.StringSpec
-import xyz.nietongxue.kanglang.define.caseDefine
-import xyz.nietongxue.kanglang.define.completeOf
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import xyz.nietongxue.kanglang.actor.ActorLogItem
+import xyz.nietongxue.kanglang.define.defineModelId
+import xyz.nietongxue.kanglang.runtime.CaseCreateStrategy
+import xyz.nietongxue.kanglang.runtime.Engine
+import xyz.nietongxue.kanglang.runtime.LogService
 
-class NewEmployeeTest : StringSpec({
-    "dsl" {
-        val define = caseDefine {
-            case("new employee case") {
-                stage("prior to starting") {
-                    task("create email address")
-                    task("allocate office")
-                    task("agree start date")
-                    task("sending joining letter to candidate") {
-                        entry(
-                            "sending",
-                            completeOf("agree start date"),
-                            completeOf("allocate office"),
-                            completeOf("create email address")
-                        )
-                    }
-                }
-                stage("after starting") {
-                    entry("start", completeOf("prior to starting"))
-                    task("fill in paperwork")
-                    task("new starter training")
-                }
-                task("reject job")
-                exit("rejected", completeOf("reject job"))
-            }
+@SpringBootTest
+class NewEmployeeTest {
+
+    @Autowired
+    var engine:Engine?=null
+    @Autowired
+    var logService: LogService?=null
+    @Test
+    fun testNewEmployee() {
+        logService!!.printLogs=false
+        engine!!.startCase(CaseCreateStrategy.DefinitionKey(defineModelId("new employee case")))
+        Thread.sleep(10000)
+        val logs = logService!!.logs
+        val emailGot = logs.filter {
+            it.message is ActorLogItem.GenericItem &&
+                    (it.message as ActorLogItem.GenericItem).string.contains("my email is")
         }
-
+        emailGot.forEach {
+            println(it)
+        }
+        assert(emailGot.size==1)
     }
-})
+}

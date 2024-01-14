@@ -24,7 +24,6 @@ interface EngineLogItem {
     data class CaseStarted(val caseId: String) : EngineLogItem
 }
 
-@EnableScheduling
 @Configuration
 class Engine(
     @Autowired val cmmnEngine: CmmnEngine,
@@ -121,7 +120,6 @@ class Engine(
                 }
             }
         }.variables(initVariables).start()
-        log(EngineLogItem.CaseStarted(caseInstance.id))
         caseInstanceIds.add(caseInstance.id)
     }
 }

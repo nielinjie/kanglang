@@ -15,10 +15,10 @@ import javax.xml.transform.stream.StreamResult
 
 
 
-fun entryCriterionId(sentryDefine: SentryDefine): String {
+fun entryCriterionId(sentryDefine: SentryDefine.EntrySentry): String {
     return "entry_criterion_id_${sentryDefine.name}".lowerUnderscore()
 }
-fun exitCriterionId(sentryDefine: SentryDefine): String {
+fun exitCriterionId(sentryDefine: SentryDefine.ExitSentry): String {
     return "exit_criterion_id_${sentryDefine.name}".lowerUnderscore()
 }
 

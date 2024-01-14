@@ -5,7 +5,7 @@ import xyz.nietongxue.common.log.Log
 
 @Component
 class LogService {
-    val printLogs: Boolean = true
+    var printLogs: Boolean = true
     val logs: MutableList<Log<*>> = mutableListOf()
     fun <M> log(log: Log<M>) {
         logs.add(log)

@@ -1,7 +1,6 @@
 package xyz.nietongxue.kanglang.runtime
 
 import jakarta.annotation.PostConstruct
-import jakarta.annotation.Resource
 import org.flowable.cmmn.api.CmmnRepositoryService
 import org.flowable.cmmn.api.CmmnRuntimeService
 import org.flowable.cmmn.api.CmmnTaskService
@@ -15,7 +14,8 @@ import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.Actor
 import xyz.nietongxue.kanglang.actor.PassIn
 import xyz.nietongxue.kanglang.define.DefineToDeploy
-import xyz.nietongxue.kanglang.material.get
+import xyz.nietongxue.kanglang.define.defineModelId
+import xyz.nietongxue.kanglang.material.Domain
 import java.time.Duration
 
 
@@ -46,6 +46,9 @@ class Engine(
     var scheduler: ThreadPoolTaskScheduler? = null
 
     @Autowired
+    var domain: Domain? = null
+
+    @Autowired
     var runtimeListener: RuntimeListener? = null
 
 
@@ -73,7 +76,7 @@ class Engine(
         val threadPoolTaskScheduler = ThreadPoolTaskScheduler()
         threadPoolTaskScheduler.setPoolSize(5)
         threadPoolTaskScheduler.setThreadNamePrefix(
-            "FetcherScheduler"
+            "DispatcherScheduler"
         )
         return threadPoolTaskScheduler
     }
@@ -83,7 +86,7 @@ class Engine(
     fun onInit(): Unit {
         log.info("engine: {}", cmmnEngine)
         val cmmnRepositoryService: CmmnRepositoryService = cmmnEngine.cmmnRepositoryService
-        val cmmnDeployment = cmmnRepositoryService.createDeployment().also {
+        cmmnRepositoryService.createDeployment().also {
             when (define) {
                 is DefineToDeploy.DefineByResource -> it.addClasspathResource((define as DefineToDeploy.DefineByResource).resourcePath)
                 is DefineToDeploy.DefineByString -> {
@@ -94,7 +97,6 @@ class Engine(
 
             }
         }.deploy()
-//        val caseDefinitions = cmmnRepositoryService.createCaseDefinitionQuery().list()
         this.runtimeService = cmmnEngine.cmmnRuntimeService!!
 
         this.runtimeService!!.addEventListener(
@@ -113,33 +115,50 @@ class Engine(
     }
 
     fun startCase(caseCreateStrategy: CaseCreateStrategy) {
+        caseCreateStrategy.create().forEach {
+            startCase(it)
+        }
+    }
+
+    fun startCase(caseCreating: CaseCreating) {
         val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
-            it.caseDefinitionKey(caseCreateStrategy.key)
-            it.variables(caseCreateStrategy.initVariables)
+            it.caseDefinitionKey(caseCreating.key)
+            it.variables(caseCreating.initVariables)
         }.variables(initVariables.variables).start()
         caseInstanceIds.add(caseInstance.id)
     }
 }
 
 interface CaseCreateStrategy {
-    val key: String
-    val initVariables: Map<String, Any>
-
-    class DefinitionKey(override val key: String, override val initVariables: Map<String, Any>) : CaseCreateStrategy {
+    fun create(): List<CaseCreating>
+    class CaseName(val caseName:String, val initVariables: Map<String, Any>) : CaseCreateStrategy {
+        override fun create(): List<CaseCreating> {
+            return listOf(CaseCreating(defineModelId(caseName), initVariables))
+        }
 
     }
 
-    class DefinitionAndPassIns(
-        override val key: String,
-        val init: Map<String, Any>,
-        private val passIns: List<PassIn.DomainVariable>
-    ) :
-        CaseCreateStrategy {
-        override val initVariables: Map<String, Any>
-            get() = init.plus(passIns.associate { it.name to get(it.name) })
+    class FromDomain(
+        val caseName: String,
+        val initVariables: Map<String, Any>,
+        val domainVariable: PassIn.DomainVariable,
+        val domain: Domain
+    ) : CaseCreateStrategy {
+        override fun create(): List<CaseCreating> {
+            return (domain.get(domainVariable.name) as? List<*>)?.filterNotNull()?.let {
+                return it.map {
+                    CaseCreating(defineModelId(caseName), initVariables + Pair(domainVariable.name, it))
+                }
+            } ?: emptyList()
+        }
+
     }
 }
 
+class CaseCreating(
+    val key: String,
+    val initVariables: Map<String, Any>
+)
 
 
 

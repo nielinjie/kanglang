@@ -23,8 +23,8 @@ class NewEmployeeTest {
     fun testNewEmployee() {
         logService!!.printLogs = true
         engine!!.startCase(
-            CaseCreateStrategy.DefinitionKey(
-                defineModelId("new employee case"),
+            CaseCreateStrategy.CaseName(
+                "new employee case",
                 mapOf("potentialEmployee" to "johnDoe")
             )
         )

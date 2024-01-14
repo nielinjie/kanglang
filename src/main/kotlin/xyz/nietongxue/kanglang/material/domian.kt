@@ -1,5 +1,8 @@
 package xyz.nietongxue.kanglang.material
 
-fun get(name:String):Any{
-    TODO()
+import org.springframework.stereotype.Component
+
+interface Domain {
+    fun get(name: String): Any
 }
+

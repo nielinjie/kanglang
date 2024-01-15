@@ -6,11 +6,10 @@ import xyz.nietongxue.kanglang.define.DefineToDeploy
 import xyz.nietongxue.kanglang.define.defineToDeploy
 import xyz.nietongxue.kanglang.runtime.InitVariables
 
-//NOTE，显式包含的Configuration，不需要annotation。
 //@Configuration
-class Config {
+class AllNewConfig{
     @Bean
-    fun actors(employeeActor: NewEmployeeActor, hrActor: HrActor): List<Actor> {
+    fun actors(employeeActor: AllNewEmployeeActor, hrActor: HrActor): List<Actor> {
         return listOf(employeeActor, hrActor)
     }
 

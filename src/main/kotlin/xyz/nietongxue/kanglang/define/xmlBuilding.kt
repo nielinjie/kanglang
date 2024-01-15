@@ -6,14 +6,17 @@ import org.redundent.kotlin.xml.xml
 import xyz.nietongxue.common.base.lowerUnderscore
 
 val flowableNs = Namespace("flowable", "http://flowable.org/cmmn")
-interface Item{
-    class TaskAsItem(val taskDefine: TaskDefine):Item
-    class StageAsItem(val stageDefine: StageDefine):Item
+
+interface Item {
+    class TaskAsItem(val taskDefine: TaskDefine) : Item
+    class StageAsItem(val stageDefine: StageDefine) : Item
 }
-fun CaseDefine.items():List<Item>{
+
+fun CaseDefine.items(): List<Item> {
     return stages.map { Item.StageAsItem(it) } + tasks.map { Item.TaskAsItem(it) }
 }
-fun StageDefine.items():List<Item>{
+
+fun StageDefine.items(): List<Item> {
     return tasks.map { Item.TaskAsItem(it) }
 }
 typealias Items = List<Item>
@@ -29,6 +32,7 @@ fun Items.planItems() {
                     criterion(it.taskDefine)
                 }
             }
+
             is Item.StageAsItem -> {
                 "planItem" {
                     attribute("id", planItemId(it.stageDefine.name))
@@ -39,21 +43,24 @@ fun Items.planItems() {
         }
     }
 }
+
 context (Node)
-fun Items.sentries(){
+fun Items.sentries() {
     forEach {
         when (it) {
             is Item.TaskAsItem -> {
                 sentries(it.taskDefine)
             }
+
             is Item.StageAsItem -> {
                 sentries(it.stageDefine)
             }
         }
     }
 }
+
 context (Node)
-fun Items.defines(){
+fun Items.defines() {
     forEach {
         when (it) {
             is Item.TaskAsItem -> {
@@ -74,6 +81,7 @@ fun Items.defines(){
                     }
                 }
             }
+
             is Item.StageAsItem -> {
                 "stage" {
                     attribute("id", defineModelId(it.stageDefine.name))
@@ -112,21 +120,8 @@ fun building(caseDefine: CaseDefine): Node {
 }
 
 
-
 fun Node.criterion(hasCriterion: HasCriterion) {
 
-//    if (hasCriterion.entry != null) {
-//        "entryCriterion" {
-//            attribute("id", entryCriterionId(hasCriterion.entry!!))
-//            attribute("sentryRef", sentryId(hasCriterion.entry!!.name))
-//        }
-//    }
-//    if (hasCriterion.exit != null) {
-//        "exitCriterion" {
-//            attribute("id", exitCriterionId(hasCriterion.exit!!))
-//            attribute("sentryRef", sentryId(hasCriterion.exit!!.name))
-//        }
-//    }
     hasCriterion.criterion.forEach {
         when (it) {
             is SentryDefine.EntrySentry -> {
@@ -135,22 +130,19 @@ fun Node.criterion(hasCriterion: HasCriterion) {
                     attribute("sentryRef", sentryId(it.name))
                 }
             }
+
             is SentryDefine.ExitSentry -> {
                 "exitCriterion" {
                     attribute("id", exitCriterionId(it))
                     attribute("sentryRef", sentryId(it.name))
                 }
             }
+
         }
     }
 }
+
 fun Node.sentries(hasCriterion: HasCriterion) {
-//    if (hasCriterion.entry != null) {
-//        sentry(hasCriterion.entry!!)
-//    }
-//    if (hasCriterion.exit != null) {
-//        sentry(hasCriterion.exit!!)
-//    }
     hasCriterion.criterion.forEach {
         sentry(it)
     }

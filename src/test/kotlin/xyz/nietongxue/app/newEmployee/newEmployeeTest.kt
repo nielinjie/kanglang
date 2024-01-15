@@ -1,16 +1,24 @@
 package xyz.nietongxue.app.newEmployee
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.FilterType
+import xyz.nietongxue.kanglang.actor.Actor
 import xyz.nietongxue.kanglang.actor.ActorLogItem
-import xyz.nietongxue.kanglang.define.defineModelId
+import xyz.nietongxue.kanglang.define.DefineToDeploy
+import xyz.nietongxue.kanglang.define.defineToDeploy
 import xyz.nietongxue.kanglang.runtime.CaseCreateStrategy
 import xyz.nietongxue.kanglang.runtime.Engine
+import xyz.nietongxue.kanglang.runtime.InitVariables
 import xyz.nietongxue.kanglang.runtime.LogService
 
 
-@SpringBootTest(classes = [Config::class, Application::class])
+@SpringBootTest(classes = [Config::class,Application::class])
 class NewEmployeeTest {
 
     @Autowired
@@ -40,6 +48,6 @@ class NewEmployeeTest {
         emailGot.forEach {
             println(it)
         }
-        assert(emailGot.size == 1)
+        assertThat(emailGot.size).isEqualTo(1)
     }
 }

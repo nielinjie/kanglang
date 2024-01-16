@@ -54,7 +54,7 @@ class DefineBuilderTest : StringSpec({
                     TaskDefine(
                         "task2",
                     ).also {
-                        it.criterion = listOf(SentryDefine.EntrySentry("entry1", listOf(OnEvent("task1", Complete))))
+                        it.criterion = listOf(SentryDefine.EntrySentry("entry1", listOf(OnEvent("task1", Complete)),null))
                     }
                 )
             ),

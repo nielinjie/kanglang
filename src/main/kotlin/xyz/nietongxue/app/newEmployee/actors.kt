@@ -21,8 +21,7 @@ class NewEmployeeActor(
         } ?: return@actionForTask TouchResult.Error(task, "can't find email in case")
     }
     val newTrain = simpleAction(NEW_STARTER_TRAINING)
-    override val name: String
-        get() = "newEmployee"
+    override val name: String = "newEmployee"
 
     override fun fetch(): FetchStrategy {
         return FetchStrategy.ByUserName("johnDoe")

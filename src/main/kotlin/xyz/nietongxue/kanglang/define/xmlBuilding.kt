@@ -29,7 +29,19 @@ fun Items.planItems() {
                 "planItem" {
                     attribute("id", planItemId(it.taskDefine.name))
                     attribute("definitionRef", defineModelId(it.taskDefine.name))
+                    if (it.taskDefine.repeat is Repeat.Yes) {
+                        "itemControl" {
+                            attribute("maxInstanceCount", (it.taskDefine.repeat as Repeat.Yes).maxInstance, flowableNs)
+                            "repetitionRule" {
+                                "condition" {
+                                    attribute("language", "juel")
+                                    text(it.taskDefine.repeat.condition.dollar())
+                                }
+                            }
+                        }
+                    }
                     criterion(it.taskDefine)
+
                 }
             }
 
@@ -161,6 +173,16 @@ fun Node.sentry(sentryDefine: SentryDefine) {
                         "standardEvent" {
                             text("complete")
                         }
+                    }
+                }
+            }
+            if (sentryDefine.ifPart != null) {
+                "ifPart" {
+                    attribute("id", "sentry_if_${sentryId}".lowerUnderscore())
+                    "condition" {
+                        attribute("id", "sentry_if_condition_${sentryId}".lowerUnderscore())
+                        attribute("language", "juel")
+                        text(sentryDefine.ifPart!!.dollar())
                     }
                 }
             }

@@ -26,7 +26,7 @@ data class CaseDefine(
 
 data class StageDefine(val name: String, override val tasks: List<TaskDefine>) : HasCriterion, HasTasks {
     override var criterion: List<SentryDefine> = emptyList()
-
+    var repeat: Repeat = Repeat.No
 }
 
 data class TaskDefine(
@@ -34,20 +34,51 @@ data class TaskDefine(
 ) : HasCriterion, CandidateBuilder {
     override var criterion: List<SentryDefine> = emptyList()
     override var candidate: Candidate? = null
+    var repeat: Repeat = Repeat.No
+
 }
 
 sealed interface SentryDefine {
     val name: String
     val onEvents: List<OnEvent>
+    val ifPart: ExpressionDefine?
 
-    data class EntrySentry(override val name: String, override val onEvents: List<OnEvent>) : SentryDefine
-    data class ExitSentry(override val name: String, override val onEvents: List<OnEvent>) : SentryDefine
+    data class EntrySentry(
+        override val name: String, override val onEvents: List<OnEvent>,
+        override val ifPart: ExpressionDefine?
+    ) : SentryDefine
+
+    data class ExitSentry(
+        override val name: String, override val onEvents: List<OnEvent>,
+        override val ifPart: ExpressionDefine?
+    ) : SentryDefine
 }
 
 data class OnEvent(val planItemOn: String, val event: SentryEvent)
+
+data class ExpressionDefine(val expression: String) {
+    fun dollar(): String {
+        return "\${$expression}"
+    }
+}
+
 interface SentryEvent {
     object Complete : SentryEvent
     object Start : SentryEvent
 }
 
+interface Repeat {
+    val condition: ExpressionDefine
+
+    object No : Repeat {
+        override val condition: ExpressionDefine = ExpressionDefine("false")
+    }
+
+    class Yes() : Repeat{
+        override val condition: ExpressionDefine = ExpressionDefine("true")
+        var maxInstance:Int = 1
+    }
+}
+
 fun completeOf(planItemOn: String) = OnEvent(planItemOn, SentryEvent.Complete)
+fun startOf(planItemOn: String) = OnEvent(planItemOn, SentryEvent.Start)

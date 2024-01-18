@@ -35,7 +35,6 @@ val circleDefine = caseDefine {
             task("code") {
                 entry("first coding") {
                     on(startOf("code stage"))
-                    guard("codeCommitted==false")
                 }
                 entry("from review") {
                     on(completeOf("review"))

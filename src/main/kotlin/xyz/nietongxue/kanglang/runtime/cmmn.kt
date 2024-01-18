@@ -10,7 +10,11 @@ import org.springframework.stereotype.Component
 import xyz.nietongxue.common.log.Log
 
 
-class CmmnTask(val raw: org.flowable.task.api.Task, val caseId: String, val runtimeService: CmmnRuntimeService) : Task {
+class CmmnTask(
+    val raw: org.flowable.task.api.Task,
+    val caseId: String,
+    private val runtimeService: CmmnRuntimeService
+) : Task {
     override fun variables(): Map<String, Any> {
         return runtimeService.getLocalVariables(raw.id)
     }
@@ -24,7 +28,10 @@ class CmmnTask(val raw: org.flowable.task.api.Task, val caseId: String, val runt
 
 }
 
-class CmmnCase(val raw: org.flowable.cmmn.api.runtime.CaseInstance, val runtimeService: CmmnRuntimeService) : Case {
+class CmmnCase(
+    private val raw: org.flowable.cmmn.api.runtime.CaseInstance,
+    private val runtimeService: CmmnRuntimeService
+) : Case {
 
     override fun variables(): Map<String, Any> {
         return runtimeService.getVariables(this.id)

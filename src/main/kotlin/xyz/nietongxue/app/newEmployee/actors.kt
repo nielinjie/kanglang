@@ -11,7 +11,7 @@ import xyz.nietongxue.kanglang.runtime.caseVariable
 class NewEmployeeActor(
     @Autowired
     override val logService: LogService
-) : Actor {
+) : Actor ,WithLog,MultiAction(){
     val fill = actionForTask(FILL_IN_PAPERWORK) { task ->
         task.caseVariable<String>("email")?.let {
             log("my email is $it")
@@ -44,7 +44,7 @@ class NewEmployeeActor(
 class HrActor(
     @Autowired
     override val logService: LogService
-) : Actor {
+) : Actor,WithLog,MultiAction() {
     val create = actionForTask(CREATE_EMAIL_ADDRESS) { task ->
         TouchResult.Completed(
             task,

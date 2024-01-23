@@ -12,7 +12,7 @@ import xyz.nietongxue.kanglang.runtime.Task
 class CodeActor(
     @Autowired override val logService: LogService,
     @Autowired val coderDomain: Domain
-) : Actor {
+) : Actor, WithLog {
     override val name: String = "coder"
     override fun fetch(): FetchStrategy {
         return FetchStrategy.ByRoleName("coder")
@@ -31,7 +31,7 @@ class CodeActor(
 
 
 @Component
-class ReviewActor(@Autowired override val logService: LogService) : Actor {
+class ReviewActor(@Autowired override val logService: LogService) : Actor, WithLog {
     override val name: String = "reviewer"
     override fun fetch(): FetchStrategy {
         return FetchStrategy.ByRoleName("reviewer")

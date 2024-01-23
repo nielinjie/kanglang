@@ -52,7 +52,7 @@ class NewEmployeeDomainTest {
 class AllNewEmployeeActor(
     @Autowired
     override val logService: LogService
-) : Actor {
+) : Actor,WithLog,MultiAction() {
 
     val fill = actionForTask(FILL_IN_PAPERWORK) { task ->
         task.caseVariables()["email"]?.let {

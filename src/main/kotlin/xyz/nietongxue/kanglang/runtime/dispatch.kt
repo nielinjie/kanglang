@@ -46,6 +46,7 @@ class Dispatcher(
                     log(DispatcherLogItem.ChosenDone(it))
                     when (it) {
                         is ChooseResult.ChosenOne -> {
+                            it.task.claim(actor.name)
                             val result = actor.touch(it.task)
                             log(DispatcherLogItem.TouchDone(result))
                             val effects = result.effects

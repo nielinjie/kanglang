@@ -1,9 +1,6 @@
 package xyz.nietongxue.app.document
 
-import xyz.nietongxue.kanglang.define.Candidate
-import xyz.nietongxue.kanglang.define.Repeat
-import xyz.nietongxue.kanglang.define.caseDefine
-import xyz.nietongxue.kanglang.define.completeOf
+import xyz.nietongxue.kanglang.define.*
 
 val define = caseDefine {
     case("new doc") {
@@ -25,6 +22,27 @@ val define = caseDefine {
                     guard("var:get(docParts).size() == var:get(docRewrittenParts).size()")
                 }
             }
+        }
+    }
+}
+
+
+fun StageBuilder.splitAndProcessAndMerge(processName:String){
+    task("split") {
+        candidate = Candidate.Group("splitter")
+    }
+    task(processName) {
+        candidate = Candidate.Group(processName)
+        repeat = Repeat.ByCollection("${processName}Parts")
+        entry("from split") {
+            on(completeOf("split"))
+        }
+    }
+    task("merge"){
+        candidate = Candidate.Group("merger")
+        entry("from process") {
+            on(completeOf(processName))
+            guard("var:get(${processName}Parts).size() == var:get(${processName}ResultParts).size()")
         }
     }
 }

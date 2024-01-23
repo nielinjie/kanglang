@@ -41,7 +41,8 @@ interface ChooseResult {
     data object NothingToChose : ChooseResult
 }
 
-interface Actor {
+
+interface WithLog {
     val logService: LogService
     fun log(logString: String) {
         logService.log(Log(ActorLogItem.GenericItem(logString)))
@@ -50,7 +51,9 @@ interface Actor {
     fun log(logItem: ActorLogItem) {
         logService.log(Log(logItem))
     }
+}
 
+interface Actor {
     val name: String
     fun fetch(): FetchStrategy
     fun touch(task: Task): TouchResult
@@ -59,6 +62,27 @@ interface Actor {
         return tasks.firstOrNull()?.let { ChooseResult.ChosenOne(it) } ?: ChooseResult.NotChosen
     }
 
+
+}
+
+
+fun actor(name: String, touchFun: (Task) -> TouchResult): Actor {
+    return object : Actor {
+        override val name: String = name
+        override fun fetch(): FetchStrategy {
+            return FetchStrategy.ByRoleName(name)
+        }
+
+        override fun touch(task: Task): TouchResult = touchFun(task)
+
+    }
+}
+abstract class SingleAction(override val name:String):Actor{
+    override fun fetch(): FetchStrategy {
+        return FetchStrategy.ByRoleName(name)
+    }
+}
+abstract class MultiAction():Actor{
     fun matchOneByOne(task: Task, listOf: List<Action>): TouchResult {
         listOf.forEach {
             if (it.matchTask(task)) {
@@ -68,7 +92,6 @@ interface Actor {
         error("unknown task: ${task.name}")
     }
 }
-
 
 
 

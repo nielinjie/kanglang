@@ -28,6 +28,10 @@ class CmmnTask(
     override val name: String
         get() = raw.name
 
+    override fun claim(userName: String) {
+        taskService.claim(raw.id, userName)
+    }
+
 }
 
 class CmmnCase(

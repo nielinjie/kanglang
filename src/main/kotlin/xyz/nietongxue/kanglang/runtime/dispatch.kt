@@ -42,7 +42,7 @@ class Dispatcher(
                 if (tasks.isEmpty()) {
                     return@act
                 }
-                actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService) }).also {
+                actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService,taskService) }).also {
                     log(DispatcherLogItem.ChosenDone(it))
                     when (it) {
                         is ChooseResult.ChosenOne -> {

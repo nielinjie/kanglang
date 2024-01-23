@@ -19,10 +19,7 @@ import xyz.nietongxue.kanglang.runtime.InitVariables
 
 @Configuration
 class Config{
-    @Bean
-    fun actors(): List<Actor> {
-        return listOf()
-    }
+
 
 
     @Bean

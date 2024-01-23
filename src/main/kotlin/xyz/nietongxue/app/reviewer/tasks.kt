@@ -6,15 +6,11 @@ val define = caseDefine {
     case("code with review") {
         stage("code stage") {
             task("code") {
-//                entry("first", OnEvent("code stage",SentryEvent.Start ))
-//                entry("from review", OnEvent("review",SentryEvent.Complete),)//if not pass
                 this.candidate = Candidate.Group("coder")
-//                this.repeatable = true
             }
             task("review") {
                 entry("from coding", "codeCommitted==true", OnEvent("code", SentryEvent.Complete))
                 this.candidate = Candidate.Group("reviewer")
-//                this.repeatable = true
             }
         }
     }

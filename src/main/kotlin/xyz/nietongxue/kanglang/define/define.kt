@@ -1,5 +1,7 @@
 package xyz.nietongxue.kanglang.define
 
+import xyz.nietongxue.common.base.singular
+
 
 interface HasCriterion {
     var criterion: List<SentryDefine>
@@ -67,16 +69,38 @@ interface SentryEvent {
     object Start : SentryEvent
 }
 
+
 interface Repeat {
     val condition: ExpressionDefine
+
+    companion object {
+        fun itemVariableName(collectionName: String): String {
+            return collectionName.singular() + "Item"
+        }
+
+        fun indexVariableName(collectionName: String): String {
+            return collectionName.singular() + "ItemIndex"
+        }
+    }
 
     object No : Repeat {
         override val condition: ExpressionDefine = ExpressionDefine("false")
     }
 
-    class Yes() : Repeat{
+    class Yes() : Repeat {
         override val condition: ExpressionDefine = ExpressionDefine("true")
-        var maxInstance:Int = 1
+        var maxInstance: Int = 1
+    }
+
+    class ByCollection(val collectionName: String, val itemVariableName: String, val indexVariableName: String) :
+        Repeat {
+        constructor(collectionName: String) : this(
+            collectionName,
+            itemVariableName(collectionName),
+            indexVariableName(collectionName)
+        )
+
+        override val condition: ExpressionDefine = ExpressionDefine("true")
     }
 }
 

@@ -29,17 +29,36 @@ fun Items.planItems() {
                 "planItem" {
                     attribute("id", planItemId(it.taskDefine.name))
                     attribute("definitionRef", defineModelId(it.taskDefine.name))
-                    if (it.taskDefine.repeat is Repeat.Yes) {
-                        "itemControl" {
-                            attribute("maxInstanceCount", (it.taskDefine.repeat as Repeat.Yes).maxInstance, flowableNs)
-                            "repetitionRule" {
-                                "condition" {
-                                    attribute("language", "juel")
-                                    text(it.taskDefine.repeat.condition.dollar())
+                    when (val repeat = it.taskDefine.repeat) {
+                        is Repeat.Yes -> {
+                            "itemControl" {
+                                attribute("maxInstanceCount", repeat.maxInstance, flowableNs)
+                                "repetitionRule" {
+                                    "condition" {
+                                        attribute("language", "juel")
+                                        text(repeat.condition.dollar())
+                                    }
+                                }
+                            }
+                        }
+
+                        is Repeat.ByCollection -> {
+                            repeat.also {
+                                "itemControl" {
+                                    "repetitionRule" {
+                                        attribute("collectionVariable", it.collectionName, flowableNs)
+                                        attribute("elementVariable", it.itemVariableName, flowableNs)
+                                        attribute("elementIndexVariable", it.indexVariableName, flowableNs)
+                                        "condition" {
+                                            attribute("language", "juel")
+                                            text(it.condition.dollar())
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+
                     criterion(it.taskDefine)
 
                 }

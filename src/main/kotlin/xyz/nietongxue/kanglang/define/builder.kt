@@ -63,7 +63,7 @@ class StageBuilder : CBuilder {
     var name: String? = null
     var repeat :Repeat = Repeat.No
 
-    fun task(name: String, init: TaskBuilder.() -> Unit = {}): TaskDefine {
+    fun task(name: String,init: TaskBuilder.() -> Unit = {}): TaskDefine {
         val builder = TaskBuilder().also {
             it.name = name
             it.init()

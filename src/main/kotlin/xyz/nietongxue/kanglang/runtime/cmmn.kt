@@ -1,6 +1,7 @@
 package xyz.nietongxue.kanglang.runtime
 
 import org.flowable.cmmn.api.CmmnRuntimeService
+import org.flowable.cmmn.api.CmmnTaskService
 import org.flowable.cmmn.api.event.FlowableCaseEndedEvent
 import org.flowable.cmmn.api.event.FlowableCaseStartedEvent
 import org.flowable.common.engine.api.delegate.event.FlowableEvent
@@ -13,10 +14,11 @@ import xyz.nietongxue.common.log.Log
 class CmmnTask(
     val raw: org.flowable.task.api.Task,
     val caseId: String,
-    private val runtimeService: CmmnRuntimeService
+    val runtimeService: CmmnRuntimeService,
+    val taskService: CmmnTaskService
 ) : Task {
     override fun variables(): Map<String, Any> {
-        return runtimeService.getLocalVariables(raw.id)
+        return taskService.getVariables(raw.id)
     }
 
     override fun caseVariables(): Map<String, Any> {

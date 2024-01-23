@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component
 import xyz.nietongxue.kanglang.actor.*
 import xyz.nietongxue.kanglang.runtime.LogService
 import xyz.nietongxue.kanglang.runtime.Task
+import xyz.nietongxue.kanglang.runtime.caseVariable
 
 @Component
 class NewEmployeeActor(
@@ -12,7 +13,7 @@ class NewEmployeeActor(
     override val logService: LogService
 ) : Actor {
     val fill = actionForTask(FILL_IN_PAPERWORK) { task ->
-        task.caseVariables()["email"]?.let {
+        task.caseVariable<String>("email")?.let {
             log("my email is $it")
             TouchResult.Completed(
                 task,

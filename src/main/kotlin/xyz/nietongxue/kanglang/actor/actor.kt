@@ -29,6 +29,7 @@ interface Effect {
     class TaskVariable(val task: Task, val name: String, val value: Any) : Effect
     class CaseVariable(val task: Task, val name: String, val value: Any) : Effect
     class DomainVariable(val task: Task, val name: String, val value: Any) : Effect
+    class CaseVariableCollectionAdd(val task: Task, val name: String, val value: Any) : Effect
 }
 
 interface ChooseResult {

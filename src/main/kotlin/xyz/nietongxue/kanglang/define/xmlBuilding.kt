@@ -35,7 +35,6 @@ fun Items.planItems() {
                                 attribute("maxInstanceCount", repeat.maxInstance, flowableNs)
                                 "repetitionRule" {
                                     "condition" {
-                                        attribute("language", "juel")
                                         text(repeat.condition.dollar())
                                     }
                                 }
@@ -50,7 +49,6 @@ fun Items.planItems() {
                                         attribute("elementVariable", it.itemVariableName, flowableNs)
                                         attribute("elementIndexVariable", it.indexVariableName, flowableNs)
                                         "condition" {
-                                            attribute("language", "juel")
                                             text(it.condition.dollar())
                                         }
                                     }
@@ -183,6 +181,7 @@ fun Node.sentry(sentryDefine: SentryDefine) {
     val sentryId = sentryId(sentryDefine.name)
     "sentry" {
         attribute("id", sentryId)
+        attribute("triggerMode", "onEvent", flowableNs)
         sentryDefine.onEvents.forEach {
             "planItemOnPart" {
                 attribute("id", "sentry_on_${sentryId}_${it.planItemOn}".lowerUnderscore())
@@ -200,7 +199,6 @@ fun Node.sentry(sentryDefine: SentryDefine) {
                     attribute("id", "sentry_if_${sentryId}".lowerUnderscore())
                     "condition" {
                         attribute("id", "sentry_if_condition_${sentryId}".lowerUnderscore())
-                        attribute("language", "juel")
                         text(sentryDefine.ifPart!!.dollar())
                     }
                 }

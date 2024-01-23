@@ -114,18 +114,19 @@ class Engine(
         }
     }
 
-    fun startCase(caseCreateStrategy: CaseCreateStrategy) {
-        caseCreateStrategy.create().forEach {
+    fun startCase(caseCreateStrategy: CaseCreateStrategy) :List<String>{
+        return caseCreateStrategy.create().map {
             startCase(it)
         }
     }
 
-    fun startCase(caseCreating: CaseCreating) {
+    fun startCase(caseCreating: CaseCreating) :String{
         val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
             it.caseDefinitionKey(caseCreating.key)
             it.variables(caseCreating.initVariables)
         }.variables(initVariables.variables).start()
         caseInstanceIds.add(caseInstance.id)
+        return caseInstance.id
     }
 }
 

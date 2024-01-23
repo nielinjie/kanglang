@@ -42,7 +42,7 @@ class Dispatcher(
                 if (tasks.isEmpty()) {
                     return@act
                 }
-                actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService,taskService) }).also {
+                actor.choose(tasks.map { CmmnTask(it, caseId, runtimeService, taskService) }).also {
                     log(DispatcherLogItem.ChosenDone(it))
                     when (it) {
                         is ChooseResult.ChosenOne -> {
@@ -75,8 +75,7 @@ class Dispatcher(
     private fun doWithEffect(effect: Effect) {
         when (effect) {
             is Effect.TaskVariable -> {
-                effect.task as CmmnTask
-                taskService.setVariableLocal(effect.task.raw.id, effect.name, effect.value)
+                TODO()
             }
 
             is Effect.CaseVariable -> {
@@ -84,7 +83,14 @@ class Dispatcher(
                     runtimeService.setVariable(
                         it.caseId, effect.name, effect.value
                     )
-                    it.raw.caseVariables
+                }
+            }
+
+            is Effect.CaseVariableCollectionAdd -> {
+                (effect.task as CmmnTask).also {
+                    val list = runtimeService.getVariable(it.caseId, effect.name) as? Collection<*>
+                    val newList = (list ?: listOf<Any>()) + effect.value
+                    runtimeService.setVariable(it.caseId, effect.name, newList)
                 }
             }
         }

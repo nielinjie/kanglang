@@ -18,6 +18,13 @@ val define = caseDefine {
                     on(completeOf("split"))
                 }
             }
+            task("merge"){
+                candidate = Candidate.Group("merger")
+                entry("from write") {
+                    on(completeOf("write"))
+                    guard("var:get(docParts).size() == var:get(docRewrittenParts).size()")
+                }
+            }
         }
     }
 }

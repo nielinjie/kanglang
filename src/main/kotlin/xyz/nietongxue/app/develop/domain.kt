@@ -2,12 +2,14 @@ package xyz.nietongxue.app.develop
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import xyz.nietongxue.common.base.Path
 import xyz.nietongxue.common.base.md5
 import xyz.nietongxue.common.base.startBy
 import xyz.nietongxue.common.coordinate.*
 import xyz.nietongxue.kanglang.material.Domain
 import xyz.nietongxue.kanglang.material.Material
 import xyz.nietongxue.kanglang.material.WithName
+import java.io.File
 
 @Configuration
 class DomainConfig {
@@ -18,18 +20,16 @@ class DomainConfig {
 
     @Bean
     fun materialLib(): MaterialLib {
-        return MemoryLib()
+        return FileLib(File("./classRoomDoc"))
     }
 }
 
 class LibraryAsDomain(val materialLib: MaterialLib) : Domain {
     override fun get(name: String): Any {
-        require(name.startsWith("phase:"))
-        return materialLib.get(selectorPhaseIs(name.startBy("phase:")!!))
+        return materialLib.get(pathToSelector(Path.fromString(name)))
     }
 
     override fun set(name: String, value: Any) {
-        require(name.startsWith("phase:"))
         val material = when (value) {
             is Material -> value
             is String -> object : Material {
@@ -38,55 +38,25 @@ class LibraryAsDomain(val materialLib: MaterialLib) : Domain {
 
             else -> error("not supported yet")
         }
-        materialLib.set(phaseLocation(name.startBy("phase:")!!), material)
+        materialLib.post(pathToLocation(Path.fromString(name)), material)
     }
 
-    private fun phaseLocation(phase: String): Location {
-        return object : Location {
-            override val values: List<Value> = listOf(
-                CategoryValue<String>(MaterialDimension.Phase, phase)
-            )
-        }
-    }
 
 }
 
-
-fun selectorPhaseIs(phase: String): Selector {
-    return object : Selector {
-        override val predicates: List<Predicate> = listOf(
-            object : Predicate {
-                override fun test(value: Value): Boolean {
-                    return value.dimension == MaterialDimension.Phase && (
-                            ((value as CategoryValue<String>).d).let { it == phase })
-                }
-
-                override val dimension: Dimension
-                    get() = MaterialDimension.Phase
-            }
-        )
-    }
+fun phaseEqual(phase: String): Selector {
+    return listOf(phase(phase).matchEq()).selector()
 }
 
-fun selectorAspectIs(aspect: String): Selector {
-    return object : Selector {
-        override val predicates: List<Predicate> = listOf(
-            object : Predicate {
-                override fun test(value: Value): Boolean {
-                    return value.dimension == MaterialDimension.Aspect && (
-                            ((value as CategoryValue<String>).d).let { it == aspect })
-                }
-
-                override val dimension: Dimension
-                    get() = MaterialDimension.Aspect
-            }
-        )
-    }
+fun aspectEqual(aspect: String): Selector {
+    return listOf(aspect(aspect).matchEq()).selector()
 }
+
 
 interface MaterialLib {
     fun get(selector: Selector): List<Material>
-    fun set(location: Location, material: Material)
+    fun post(location: Location, material: Material)
+    fun update(location: Location, f: (Material) -> Material)
 }
 
 class MemoryLib : MaterialLib {
@@ -97,16 +67,21 @@ class MemoryLib : MaterialLib {
     }
 
 
-    override fun set(location: Location, material: Material) {
+    override fun post(location: Location, material: Material) {
         this.material.set(location, (this.material.get(location) ?: listOf()) + material)
     }
+
+    override fun update(location: Location, f: (Material) -> Material) {
+        TODO("Not yet implemented")
+    }
+
 }
 
 
 fun Material.fileName(): String {
     return when (this) {
         is WithName -> this.name
-        else -> "_"+this.content.md5()
+        else -> "_" + this.content.md5()
     }
 }
 
@@ -127,13 +102,14 @@ interface MaterialDimension {
 
 }
 
-fun phase(name: String): Value {
-    return CategoryValue<String>(MaterialDimension.Phase, name)
+fun phase(stringPoint: String): CategoryValue<String> {
+    return CategoryValue<String>(MaterialDimension.Phase, stringPoint)
 }
 
-fun aspect(name: String): Value {
-    return CategoryValue<String>(MaterialDimension.Aspect, name)
+fun aspect(stringPoint: String): CategoryValue<String> {
+    return CategoryValue<String>(MaterialDimension.Aspect, stringPoint)
 }
+
 
 fun location(vararg values: Value): Location {
     return object : Location {
@@ -149,3 +125,42 @@ val sortOrder: List<MaterialDimension> = listOf(
 //    MaterialDimension.Version,
 
 )
+
+
+/*
+location的string形式是： area_xxxx/layer_xxx/phase_xxx/aspect_xxx
+ */
+
+fun pathToLocation(path: Path): Location {
+    return object : Location {
+        override val values: List<Value> = path.parts.map {
+            when {
+                it.startsWith("phase_") -> CategoryValue(MaterialDimension.Phase, it.startBy("phase_")!!)
+                it.startsWith("layer_") -> CategoryValue(MaterialDimension.Layer, it.startBy("layer_")!!)
+                it.startsWith("aspect_") -> CategoryValue(MaterialDimension.Aspect, it.startBy("aspect_")!!)
+//                it.startsWith("area_") -> PathLikeValue(MaterialDimension.Area,it.startBy("area_")!!.slp)
+                else -> {
+                    error("not supported yet")
+                }
+            }
+        }
+    }
+}
+
+/*
+selector的string形式是： phase_xxx/aspect_xxx
+ */
+//TODO 支持通配符。
+fun pathToSelector(path: Path): Selector {
+    val predicates: List<Predicate> = path.parts.map { part ->
+        when {
+            part.startsWith("phase_") -> phase(part.startBy("phase_")!!).matchEq()
+            part.startsWith("layer_") -> TODO()
+            part.startsWith("aspect_") -> aspect(part.startBy("aspect_")!!).matchEq()
+            else -> {
+                error("not supported yet")
+            }
+        }
+    }
+    return predicates.selector()
+}

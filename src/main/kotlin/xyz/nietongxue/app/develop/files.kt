@@ -1,7 +1,6 @@
 package xyz.nietongxue.app.develop
 
 import xyz.nietongxue.common.base.Path
-import xyz.nietongxue.common.base.startBy
 import xyz.nietongxue.common.coordinate.*
 import xyz.nietongxue.kanglang.material.Material
 import xyz.nietongxue.kanglang.material.WithName
@@ -23,13 +22,17 @@ class FileLib(val root: File) : MaterialLib {
         }
     }
 
-    override fun set(location: Location, material: Material) {
+    override fun post(location: Location, material: Material) {
 
         this.material.set(location, (this.material.get(location) ?: listOf()) + material)
         val path = localToPath(location)
         val file = File(root, path.asString())
         file.mkdirs()
         File(file, material.fileName()).writeText(material.content)
+    }
+
+    override fun update(location: Location, f: (Material) -> Material) {
+        TODO("Not yet implemented")
     }
 }
 
@@ -66,21 +69,7 @@ fun filesToMaterial(root: File, files: List<File>): List<Pair<Location, Material
     }
 }
 
-fun pathToLocation(path: Path): Location {
-    return object : Location {
-        override val values: List<Value> = path.parts.map {
-            when {
-                it.startsWith("phase_") -> CategoryValue(MaterialDimension.Phase, it.startBy("phase_")!!)
-                it.startsWith("layer_") -> CategoryValue(MaterialDimension.Layer, it.startBy("layer_")!!)
-                it.startsWith("aspect_") -> CategoryValue(MaterialDimension.Aspect, it.startBy("aspect_")!!)
-//                it.startsWith("area_") -> PathLikeValue(MaterialDimension.Area,it.startBy("area_")!!.slp)
-                else -> {
-                    error("not supported yet")
-                }
-            }
-        }
-    }
-}
+
 
 
 fun localToPath(location: Location): Path {

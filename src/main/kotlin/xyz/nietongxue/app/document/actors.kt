@@ -34,7 +34,7 @@ class Writer(@Autowired override val logService: LogService) : Actor, WithLog, S
         val subIndex = (task.variable<Int>(Repeat.indexVariableName("writeParts")))!!.toString()
         log("doc - $subIndex - rewritten")
         return TouchResult.Completed(
-            task, Effect.CaseVariableCollectionAdd
+            task, Effect.CaseVariablePost
                 (task, "writeResultParts", "$subIndex - rewritten")
         )
     }

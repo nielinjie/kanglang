@@ -89,7 +89,7 @@ class Dispatcher(
                 }
             }
 
-            is Effect.CaseVariableCollectionAdd -> {
+            is Effect.CaseVariablePost -> {
                 (effect.task as CmmnTask).also {
                     val list = runtimeService.getVariable(it.caseId, effect.name) as? Collection<*>
                     val newList = (list ?: listOf<Any>()) + effect.value

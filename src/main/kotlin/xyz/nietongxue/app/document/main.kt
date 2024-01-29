@@ -11,11 +11,9 @@ fun main() {
 }
 
 
-@SpringBootApplication(scanBasePackages = ["xyz.nietongxue"])
+@SpringBootApplication(scanBasePackages = ["xyz.nietongxue.kanglang","xyz.nietongxue.app.document"])
 class Application() {
 
-    @Autowired
-    var llmConfig: LLMConfig? = null
 
 
 }

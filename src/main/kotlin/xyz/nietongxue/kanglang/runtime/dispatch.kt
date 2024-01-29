@@ -5,6 +5,7 @@ import org.flowable.cmmn.api.CmmnTaskService
 import org.springframework.beans.factory.annotation.Autowired
 import xyz.nietongxue.common.log.Log
 import xyz.nietongxue.kanglang.actor.*
+import xyz.nietongxue.kanglang.material.Domain
 
 
 interface DispatcherLogItem {
@@ -18,7 +19,8 @@ class Dispatcher(
     @Autowired val taskService: CmmnTaskService,
     @Autowired val runtimeService: CmmnRuntimeService,
     @Autowired val caseInstanceIds: List<String>,
-    @Autowired val logService: LogService
+    @Autowired val logService: LogService,
+    @Autowired val domain: Domain
 ) : Runnable {
     private fun log(logItem: DispatcherLogItem) {
         this.logService.log(Log(logItem))
@@ -93,6 +95,10 @@ class Dispatcher(
                     val newList = (list ?: listOf<Any>()) + effect.value
                     runtimeService.setVariable(it.caseId, effect.name, newList)
                 }
+            }
+
+            is Effect.DomainVariable -> {
+                domain.set(effect.name, effect.value)
             }
         }
     }

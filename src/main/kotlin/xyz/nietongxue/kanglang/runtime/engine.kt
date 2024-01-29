@@ -108,19 +108,19 @@ class Engine(
         this.scheduler = threadPoolTaskScheduler().also {
             it.initialize()
             it.scheduleAtFixedRate(
-                Dispatcher(actors, taskService!!, runtimeService!!, caseInstanceIds, logService),
+                Dispatcher(actors, taskService!!, runtimeService!!, caseInstanceIds, logService, domain!!),
                 Duration.ofMillis(1000)
             )
         }
     }
 
-    fun startCase(caseCreateStrategy: CaseCreateStrategy) :List<String>{
+    fun startCase(caseCreateStrategy: CaseCreateStrategy): List<String> {
         return caseCreateStrategy.create().map {
             startCase(it)
         }
     }
 
-    fun startCase(caseCreating: CaseCreating) :String{
+    fun startCase(caseCreating: CaseCreating): String {
         val caseInstance = this.runtimeService!!.createCaseInstanceBuilder().also {
             it.caseDefinitionKey(caseCreating.key)
             it.variables(caseCreating.initVariables)
@@ -132,7 +132,7 @@ class Engine(
 
 interface CaseCreateStrategy {
     fun create(): List<CaseCreating>
-    class CaseName(val caseName:String, val initVariables: Map<String, Any>) : CaseCreateStrategy {
+    class CaseName(val caseName: String, val initVariables: Map<String, Any>) : CaseCreateStrategy {
         override fun create(): List<CaseCreating> {
             return listOf(CaseCreating(defineModelId(caseName), initVariables))
         }

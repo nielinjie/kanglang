@@ -5,44 +5,34 @@ import xyz.nietongxue.kanglang.define.*
 val define = caseDefine {
     case("new doc") {
         stage("doc") {
-            task("split") {
-                candidate = Candidate.Group("splitter")
-            }
-            task("write") {
-                candidate = Candidate.Group("writer")
-                repeat = Repeat.ByCollection("docParts")
-                entry("from split") {
-                    on(completeOf("split"))
-                }
-            }
-            task("merge"){
-                candidate = Candidate.Group("merger")
-                entry("from write") {
-                    on(completeOf("write"))
-                    guard("var:get(docParts).size() == var:get(docRewrittenParts).size()")
-                }
-            }
+            splitAndProcessAndMerge("write")
         }
     }
 }
 
 
-fun StageBuilder.splitAndProcessAndMerge(processName:String){
-    task("split") {
-        candidate = Candidate.Group("splitter")
+fun StageBuilder.splitAndProcessAndMerge(
+    processName: String,
+    splitName: String = "split",
+    mergeName: String = "merge"
+) {
+    val collectionName = "${processName}Parts"
+    val resultCollectionName = "${processName}ResultParts"
+    task(splitName) {
+        candidate = Candidate.Group(splitName)
     }
     task(processName) {
         candidate = Candidate.Group(processName)
         repeat = Repeat.ByCollection("${processName}Parts")
         entry("from split") {
-            on(completeOf("split"))
+            on(completeOf(splitName))
         }
     }
-    task("merge"){
-        candidate = Candidate.Group("merger")
+    task(mergeName) {
+        candidate = Candidate.Group(mergeName)
         entry("from process") {
             on(completeOf(processName))
-            guard("var:get(${processName}Parts).size() == var:get(${processName}ResultParts).size()")
+            guard("var:get($collectionName).size() == var:get($resultCollectionName).size()")
         }
     }
 }

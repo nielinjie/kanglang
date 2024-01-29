@@ -8,4 +8,8 @@ class CoderDomain : Domain  {
     override fun get(name: String): Any {
         return map[name]!!
     }
+
+    override fun set(name: String, value: Any) {
+        TODO("Not yet implemented")
+    }
 }

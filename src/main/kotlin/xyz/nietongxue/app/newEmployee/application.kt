@@ -9,7 +9,7 @@ fun main() {
 }
 
 
-@SpringBootApplication(scanBasePackages = ["xyz.nietongxue"])
+@SpringBootApplication(scanBasePackages = ["xyz.nietongxue.kanglang", "xyz.nietongxue.app.newEmployee"])
 class Application() {
 
 

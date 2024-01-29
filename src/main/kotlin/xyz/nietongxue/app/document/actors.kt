@@ -11,12 +11,12 @@ import xyz.nietongxue.kanglang.runtime.variable
 
 
 @Component
-class Splitter(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("splitter") {
+class Splitter(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("split") {
     override fun touch(task: Task): TouchResult {
         val docTitle: String = task.caseVariable("docTitle")!!
         return TouchResult.Completed(
             task,
-            Effect.CaseVariable(task, "docParts", listOf("part1", "part2").map { "$docTitle-$it" })
+            Effect.CaseVariable(task, "writeParts", listOf("part1", "part2").map { "$docTitle-$it" })
         )
     }
 
@@ -24,27 +24,27 @@ class Splitter(@Autowired override val logService: LogService) : Actor, WithLog,
 }
 
 @Component
-class Writer(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("writer") {
+class Writer(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("write") {
 
 
     override fun touch(task: Task): TouchResult {
 
 //        studyVariables(task as CmmnTask) // moved to test source root
-        val subTitle: String = task.variable(Repeat.itemVariableName("docParts"))!!
-        val subIndex = (task.variable<Int>(Repeat.indexVariableName("docParts")))!!.toString()
+        val subTitle: String = task.variable(Repeat.itemVariableName("writeParts"))!!
+        val subIndex = (task.variable<Int>(Repeat.indexVariableName("writeParts")))!!.toString()
         log("doc - $subIndex - rewritten")
         return TouchResult.Completed(
             task, Effect.CaseVariableCollectionAdd
-                (task, "docRewrittenParts", "$subIndex - rewritten")
+                (task, "writeResultParts", "$subIndex - rewritten")
         )
     }
 }
 
 @Component
-class Merger(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("merger") {
+class Merger(@Autowired override val logService: LogService) : Actor, WithLog, SingleAction("merge") {
 
     override fun touch(task: Task): TouchResult {
-        val docRewrittenParts: List<String> = task.caseVariable("docRewrittenParts")!!
+        val docRewrittenParts: List<String> = task.caseVariable("writeResultParts")!!
         val docTitle: String = task.caseVariable("docTitle")!!
         val mergedDoc = docRewrittenParts.joinToString("\n")
         log("doc - $docTitle - merged")
